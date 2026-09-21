@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚀 Project Launcher</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0e14;
+    --bg-glow: #1a2236;
+    --panel: #131722;
+    --panel-2: #171c29;
+    --border: #232a3b;
+    --text: #e6eaf2;
+    --muted: #8b93a7;
+    --accent: #6d8dff;
+    --accent-2: #38c6f4;
+    --green: #2fd575;
+    --red: #ff5c6c;
+    --amber: #ffb020;
+    --btn-hover-bg: #1c2333;
+    --btn-hover-border: #33405c;
+    --start-hover-bg: #10241a;
+    --start-hover-border: #2b8a54;
+    --stop-hover-bg: #2a1216;
+    --stop-hover-border: #a03a47;
+    --icon-bg: #10141f;
+    --card-hover-border: #313c55;
+    --running-border: #24523a;
+    --dot-idle: #4a5163;
+    --badge-ext-border: #6b4a12;
+    --badge-wifi-border: #1d4a5c;
+    --toast-bg: #1a2030;
+    --overlay-bg: rgba(5, 8, 14, .72);
+    --pre-text: #b9c2d4;
+    --spinner-track: rgba(255, 255, 255, .25);
+    --radius: 14px;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef1f6;
+    --bg-glow: #dfe6f3;
+    --panel: #ffffff;
+    --panel-2: #f6f8fc;
+    --border: #d8dfeb;
+    --text: #1d2531;
+    --muted: #5f6a7f;
+    --accent: #4c6fff;
+    --accent-2: #0d9bd8;
+    --green: #199d57;
+    --red: #d93a4c;
+    --amber: #a06500;
+    --btn-hover-bg: #edf1f8;
+    --btn-hover-border: #b9c4d8;
+    --start-hover-bg: #e3f3e9;
+    --start-hover-border: #4caf7d;
+    --stop-hover-bg: #fbe9ec;
+    --stop-hover-border: #d97a86;
+    --icon-bg: #eceff6;
+    --card-hover-border: #b9c4d8;
+    --running-border: #9fd4b4;
+    --dot-idle: #a6b0c2;
+    --badge-ext-border: #d9b96a;
+    --badge-wifi-border: #a9d6e5;
+    --toast-bg: #ffffff;
+    --overlay-bg: rgba(15, 23, 38, .35);
+    --pre-text: #44506b;
+    --spinner-track: rgba(0, 0, 0, .15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(1200px 500px at 70% -10%, var(--bg-glow) 0%, var(--bg) 55%);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    padding: 28px clamp(16px, 4vw, 48px) 60px;
+  }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 26px; }
+  .logo {
+    width: 46px; height: 46px; border-radius: 13px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; font-size: 24px;
+    box-shadow: 0 6px 24px rgba(109, 141, 255, .35);
+  }
+  h1 { font-size: 22px; letter-spacing: .2px; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .spacer { flex: 1; }
+  .summary { color: var(--muted); font-size: 13px; }
+  .summary b { color: var(--green); font-weight: 600; }
+
+  button {
+    font: inherit; color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 14px; cursor: pointer; transition: all .15s ease;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  button:hover:not(:disabled) { border-color: var(--btn-hover-border); background: var(--btn-hover-bg); transform: translateY(-1px); }
+  button:active:not(:disabled) { transform: translateY(0); }
+  button:disabled { opacity: .38; cursor: not-allowed; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none; color: #071018; font-weight: 600;
+  }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.08); background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+  .btn-start { border-color: #1f5c39; color: var(--green); }
+  .btn-start:hover:not(:disabled) { background: var(--start-hover-bg); border-color: var(--start-hover-border); }
+  .btn-stop { border-color: #6b2730; color: var(--red); }
+  .btn-stop:hover:not(:disabled) { background: var(--stop-hover-bg); border-color: var(--stop-hover-border); }
+  .btn-ghost { color: var(--muted); }
+  .spinner {
+    width: 14px; height: 14px; border-radius: 50%; flex: none;
+    border: 2px solid var(--spinner-track); border-top-color: currentColor;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .group-label {
+    margin: 26px 0 12px; font-size: 11.5px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .group-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  .grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  }
+  .card {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 10px;
+    transition: border-color .15s ease;
+  }
+  .card:hover { border-color: var(--card-hover-border); }
+  .card.running { border-color: var(--running-border); }
+  .card-top { display: flex; align-items: flex-start; gap: 12px; }
+  .app-icon {
+    font-size: 26px; width: 48px; height: 48px; flex: none;
+    background: var(--icon-bg); border: 1px solid var(--border); border-radius: 12px;
+    display: grid; place-items: center;
+  }
+  .card-title { font-size: 16px; font-weight: 650; }
+  .card-desc { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .status { margin-left: auto; text-align: right; flex: none; }
+  .dot {
+    display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--dot-idle); margin-right: 6px; vertical-align: 1px;
+  }
+  .running .dot { background: var(--green); box-shadow: 0 0 8px rgba(47, 213, 117, .8); animation: pulse 2s ease infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 2px rgba(47,213,117,.4); } }
+  .status small { color: var(--muted); font-size: 11.5px; display: block; margin-top: 3px; }
+  .badge {
+    display: inline-block; font-size: 10.5px; padding: 2px 8px; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--muted); margin-left: 8px; vertical-align: 2px;
+  }
+  .badge.ext { color: var(--amber); border-color: var(--badge-ext-border); }
+  .badge.wifi { color: var(--accent-2); border-color: var(--badge-wifi-border); }
+  .chip {
+    display: inline-block; font-size: 10.5px; padding: 1px 8px; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--muted); letter-spacing: .04em;
+  }
+  .meta {
+    color: var(--muted); font-size: 12px; display: flex; gap: 14px; flex-wrap: wrap;
+    align-items: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .meta .port { color: var(--accent-2); }
+  .lan {
+    font-size: 12px; color: var(--accent-2); text-decoration: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .lan:hover { text-decoration: underline; }
+  .lan svg { flex: none; }
+  .actions { display: flex; gap: 8px; margin-top: 4px; }
+  .actions button { padding: 7px 13px; font-size: 13.5px; }
+  .actions .grow { flex: 1; }
+
+  .toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 60; }
+  .toast {
+    background: var(--toast-bg); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    padding: 10px 16px; border-radius: 10px; font-size: 13.5px; max-width: 380px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.5); animation: slidein .25s ease;
+  }
+  .toast.err { border-left-color: var(--red); }
+  .toast.ok { border-left-color: var(--green); }
+  @keyframes slidein { from { transform: translateX(30px); opacity: 0; } }
+
+  .overlay {
+    position: fixed; inset: 0; background: var(--overlay-bg); z-index: 50;
+    display: none; align-items: center; justify-content: center; padding: 24px;
+    backdrop-filter: blur(3px);
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    width: min(860px, 100%); max-height: 82vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .modal-head {
+    display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+    border-bottom: 1px solid var(--border); font-weight: 650;
+  }
+  .modal-head .x { margin-left: auto; }
+  .modal pre {
+    margin: 0; padding: 16px 18px; overflow: auto; font-size: 12px; line-height: 1.55;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--pre-text);
+    white-space: pre-wrap; word-break: break-word;
+  }
+  footer { margin-top: 34px; color: var(--muted); font-size: 12.5px; text-align: center; }
+  footer code { color: var(--accent-2); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+</style>
+<script>
+  // Apply the saved theme (or the OS preference) before first paint to avoid a flash.
+  (function () {
+    let t = null;
+    try { t = localStorage.getItem("launcher.theme"); } catch {}
+    if (t !== "light" && t !== "dark")
+      t = window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+</head>
+<body>
+
+<header>
+  <div class="logo">🚀</div>
+  <div>
+    <h1>Project Launcher</h1>
+    <div class="sub">One page for every local app — start, stop, open</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="summary" id="summary"></div>
+  <a id="lan-note" class="lan" style="display:none" target="_blank" rel="noopener"
+     title="Open the launcher from any device on this Wi-Fi"></a>
+  <button id="btn-theme" class="btn-ghost" title="Switch theme">☀️ Light</button>
+  <button id="btn-stop-all" class="btn-stop" title="Stop every running app">■ Stop All</button>
+  <button id="btn-start-all" class="btn-primary" title="Start every stopped app">▶ Start All</button>
+</header>
+
+<div id="groups"></div>
+
+<footer>
+  Launcher itself runs on <code>:9090</code> and is reachable on this Wi-Fi too (link above) —
+  start it with <code>Launcher/launcher</code> &nbsp;·&nbsp; edit apps in <code>Launcher/apps.json</code> or add a sibling folder with <code>index.html</code> to discover it automatically
+</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head"><span id="log-title">Logs</span><button class="x" id="log-close">✕ Close</button></div>
+    <pre id="log-body">…</pre>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const POLL_MS = 4000;
+let apps = [];
+let busy = new Set();      // ids with an action in flight
+let logApp = null;         // id whose logs are shown in the modal
+
+const $ = (s) => document.querySelector(s);
+const groupsEl = $("#groups");
+
+const themeBtn = $("#btn-theme");
+function applyThemeBtn() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  themeBtn.textContent = dark ? "☀️ Light" : "🌙 Dark";
+  themeBtn.title = dark ? "Switch to light theme" : "Switch to dark theme";
+}
+themeBtn.addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("launcher.theme", next); } catch {}
+  applyThemeBtn();
+});
+applyThemeBtn();
+
+function toast(msg, cls = "") {
+  const t = document.createElement("div");
+  t.className = "toast " + cls;
+  t.textContent = msg;
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), 4200);
+}
+
+async function api(path, body) {
+  const res = await fetch(path, body
+    ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    : undefined);
+  return res.json();
+}
+
+function fmtAge(ts) {
+  if (!ts) return "";
+  const s = Math.floor(Date.now() / 1000 - ts);
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86400)}d`;
+}
+
+function cardHtml(a) {
+  const isBusy = busy.has(a.id);
+  const statusTxt = a.running
+    ? `Running · ${fmtAge(a.startedAt) || (a.managed ? "" : "external")}`
+    : "Stopped";
+  const extBadge = a.external ? `<span class="badge ext" title="${escapeHtml(a.proc || "")}">external</span>` : "";
+  const wifiBadge = a.network ? `<span class="badge wifi" title="Reachable from other devices on this Wi-Fi">📶 Wi-Fi</span>` : "";
+  const lanLink = a.network
+    ? (a.lanUrl
+        ? `<a class="lan" href="${escapeHtml(a.lanUrl)}" target="_blank" rel="noopener" title="Open from any device on this Wi-Fi">${phoneIcon} ${escapeHtml(a.lanUrl)}</a>`
+        : `<span class="lan" title="Connect this Mac to a Wi-Fi network to get a shareable address"> Wi-Fi IP not detected</span>`)
+    : "";
+  return `
+  <div class="card ${a.running ? "running" : ""}" id="card-${a.id}">
+    <div class="card-top">
+      <div class="app-icon">${a.icon}</div>
+      <div>
+        <div class="card-title">${escapeHtml(a.name)}${extBadge}</div>
+        <div class="card-desc">${escapeHtml(a.desc)}</div>
+      </div>
+      <div class="status">
+        <span class="dot"></span><span style="font-size:12.5px">${a.running ? "Running" : "Stopped"}</span>
+        <small>${escapeHtml(statusTxt)}</small>
+      </div>
+    </div>
+    <div class="meta">
+      <span class="chip">${escapeHtml(a.category)}</span>
+      <span>${escapeHtml(a.name)} :${a.port}</span>
+    </div>
+    ${lanLink ? `<div class="meta">${lanLink}</div>` : ""}
+    <div class="actions">
+      ${a.running
+        ? `<button class="btn-stop grow" data-act="stop" data-id="${a.id}" ${isBusy ? "disabled" : ""}>${isBusy ? '<span class="spinner"></span>' : "■"} Stop</button>
+           <button class="btn-primary" data-act="open" data-id="${a.id}">Open ↗</button>`
+        : `<button class="btn-start grow" data-act="start" data-id="${a.id}" ${isBusy ? "disabled" : ""}>${isBusy ? '<span class="spinner"></span>' : "▶"} Start</button>
+           <button class="btn-ghost" data-act="open" data-id="${a.id}" disabled>Open ↗</button>`}
+      <button class="btn-ghost" data-act="logs" data-id="${a.id}" title="View log">☰ Logs</button>
+    </div>
+  </div>`;
+}
+
+const phoneIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`;
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function render() {
+  const running = apps.filter(a => a.running).length;
+  const wifiCount = apps.filter(a => a.network).length;
+  $("#summary").innerHTML = `<b>${running}</b> / ${apps.length} apps running · ${wifiCount} on Wi-Fi`;
+  $("#btn-stop-all").disabled = running === 0 || busy.size > 0;
+  $("#btn-start-all").disabled = running === apps.length || busy.size > 0;
+
+  const wifi = apps.filter(a => a.network);
+  const local = apps.filter(a => !a.network);
+  let html = "";
+  if (wifi.length) {
+    html += `<div class="group-label">📡 Wi-Fi — open these from other devices</div>
+             <div class="grid">${wifi.map(cardHtml).join("")}</div>`;
+  }
+  if (local.length) {
+    html += `<div class="group-label">💻 This Mac only</div>
+             <div class="grid">${local.map(cardHtml).join("")}</div>`;
+  }
+  groupsEl.innerHTML = html;
+}
+
+async function refresh() {
+  try {
+    apps = await api("/api/apps");
+    render();
+    const h = await api("/api/health");
+    const note = $("#lan-note");
+    if (h.lanUrl) {
+      note.href = h.lanUrl;
+      note.innerHTML = `${phoneIcon} ${escapeHtml(h.lanUrl)}`;
+      note.style.display = "inline-flex";
+    } else {
+      note.style.display = "none";
+    }
+  } catch {
+    $("#summary").textContent = "Launcher offline — is server.py still running?";
+  }
+}
+
+async function act(id, action) {
+  busy.add(id);
+  render();
+  try {
+    const res = await api(`/api/${action}`, { id });
+    if (res.busy) { toast(`${id}: another action is still running`, ""); }
+    else if (res.error) { toast(`${id}: ${res.error}`, "err"); }
+    else if (action === "start" && res.ok === false) {
+      toast(`Start failed for ${id} — see Logs`, "err");
+    } else if (action === "start") {
+      toast(res.alreadyRunning ? `${id} was already running` : (res.slow ? `${id} starting slowly — check logs` : `${id} started`), res.ok ? "ok" : "err");
+    } else {
+      toast(res.ok ? `${id} stopped` : `${id}: could not fully stop (still up)`, res.ok ? "ok" : "err");
+    }
+  } catch (e) {
+    toast(`Launcher unreachable: ${e}`, "err");
+  }
+  busy.delete(id);
+  await refresh();
+}
+
+document.body.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-act]");
+  if (!btn) return;
+  const { act: action, id } = btn.dataset;
+  const app = apps.find(a => a.id === id);
+  if (!app) return;
+  if (action === "open") {
+    window.open(app.url, "_blank");
+  } else if (action === "start" || action === "stop") {
+    await act(id, action);
+  } else if (action === "logs") {
+    openLogs(app);
+  }
+});
+
+$("#btn-start-all").addEventListener("click", async () => {
+  toast("Starting all stopped apps…");
+  await api("/api/all/start", {});
+  await refresh();
+  toast("Start All done", "ok");
+});
+$("#btn-stop-all").addEventListener("click", async () => {
+  toast("Stopping all running apps…");
+  await api("/api/all/stop", {});
+  await refresh();
+  toast("Stop All done", "ok");
+});
+
+function openLogs(app) {
+  logApp = app.id;
+  $("#log-title").textContent = `${app.icon} ${app.name} — log`;
+  $("#overlay").classList.add("show");
+  loadLog();
+}
+async function loadLog() {
+  if (!logApp) return;
+  try {
+    const res = await api(`/api/logs?id=${logApp}`);
+    $("#log-body").textContent = res.lines?.length ? res.lines.join("\n") : "(no log output yet)";
+    const pre = $("#log-body");
+    pre.scrollTop = pre.scrollHeight;
+  } catch { /* launcher restarted */ }
+}
+$("#log-close").addEventListener("click", () => { logApp = null; $("#overlay").classList.remove("show"); });
+$("#overlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) $("#log-close").click(); });
+
+refresh();
+setInterval(() => { if (!busy.size) refresh(); }, POLL_MS);
+setInterval(() => { if (logApp && $("#overlay").classList.contains("show")) loadLog(); }, 2000);
+</script>
+</body>
+</html>

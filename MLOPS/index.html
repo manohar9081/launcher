@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>PyMLOps — Learn Python &amp; MLOps</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand" data-go="home">🐍 PyMLOps <small>· learn &amp; reference</small></div>
+  <nav class="nav-dds" id="navDds"></nav>
+  <div class="top-right">
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="Search topics…  ( / )" autocomplete="off">
+      <div id="searchResults" class="dd-menu"></div>
+    </div>
+    <div class="progress-wrap" title="Topics marked complete">
+      <div class="progress-bar"><div id="progressFill"></div></div>
+      <span id="progressLabel">0/35</span>
+    </div>
+    <button id="themeBtn" class="icon-btn" title="Toggle light/dark theme">☀️</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================== HOME ============================== -->
+<article class="topic" id="home" data-kw="welcome start how to use course outline labs path beginner">
+  <div class="hero">
+    <div class="crumb">Welcome</div>
+    <h1>Learn <span class="grad">Python</span> + <span class="grad">MLOps</span></h1>
+    <p class="lead">A hands-on course and living reference in one page. Learn the Python you need, understand
+    the MLOps practices that turn notebooks into production systems, then <b>actually build one</b> by
+    following the guided labs — no experience required, everything runs on your laptop.</p>
+  </div>
+
+  <div class="how">
+    <div class="how-card">1️⃣ &nbsp;Open any topic from the <b>dropdown menus</b> in the header (Python · MLOps · Labs · Cheatsheets).</div>
+    <div class="how-card">2️⃣ &nbsp;Press the <b>⧉ copy</b> button on any snippet and run it in your terminal or editor.</div>
+    <div class="how-card">3️⃣ &nbsp;Follow the <b>🧪 Labs in order</b> — each step tells you exactly what to type and what you should see.</div>
+    <div class="how-card">4️⃣ &nbsp;Hit <b>Mark complete</b> at the bottom of a page — progress is saved in this browser.</div>
+  </div>
+
+  <h2>Recommended learning path</h2>
+  <ol class="path-list">
+    <li><b>Python topics 1–8</b> — read each one, run the snippets as you go. Don't memorize; just get comfortable.</li>
+    <li><b>Lab 0 → Lab 2</b> — set up your machine and build the core project: prepare data, train a model.</li>
+    <li><b>MLOps topics 1–10</b> — the concepts and why they matter. Skim now, return when the labs use them.</li>
+    <li><b>Lab 3 → Lab 8</b> — productionize the project: Git, MLflow, DVC, FastAPI, Docker, CI.</li>
+    <li><b>Lab 9 (bonus)</b> — see data drift with your own eyes.</li>
+    <li><b>Cheatsheets</b> — keep them open while you work, forever.</li>
+  </ol>
+  <div class="tip"><b>💡 The one project, many tools:</b> every lab works on the same tiny project — a customer-churn
+  predictor. By Lab 8 you will have trained, tracked, versioned, served, containerized and automated a real ML service.
+  Press <b>Next →</b> at the bottom of any page to walk the whole path in order. Press <code>/</code> to search topics.</div>
+
+  <h2>Course outline</h2>
+  <p class="lead" id="trackStats">Loading…</p>
+  <div class="outline" id="outline"></div>
+</article>
+
+<!-- ============================== PYTHON 1 ============================== -->
+<article class="topic" id="py-setup" data-kw="install python version venv variables f-string dynamic typing type hints repl interpreter">
+  <div class="crumb"></div>
+  <h1>Python Setup &amp; Variables</h1>
+  <p class="lead">Python is the language of ML. Everything in MLOps — training scripts, APIs, pipelines — starts here.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> Python is an <i>interpreted</i> language — a program (the interpreter)
+  reads your file top to bottom and runs it line by line. No compiling step. You write a <code>.py</code> file,
+  run <code>python yourfile.py</code>, and it executes. That instant feedback loop is why ML people love it.</div>
+
+  <h2>Check your install &amp; run code</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">python3 --version           # any 3.10+ is great
+python3 -m venv .venv       # create an isolated environment
+source .venv/bin/activate   # activate it (macOS / Linux)
+pip install pandas numpy scikit-learn
+python train.py             # run a script
+python3                     # opens the REPL — great for quick experiments</code></pre></div>
+
+  <p><b>What just happened there:</b></p>
+  <ul>
+    <li><code>python3 --version</code> — confirms Python exists. On Windows the command is often just <code>python</code>.</li>
+    <li><code>python3 -m venv .venv</code> — creates a <b>virtual environment</b>: a private toolbox of libraries
+    for this project only, so two projects can use different library versions without fighting.</li>
+    <li><code>source .venv/bin/activate</code> — "use that toolbox now". You'll know it worked: your terminal
+    prompt gains a <code>(.venv)</code> prefix. From then on, <code>python</code> and <code>pip</code> belong to the project.</li>
+    <li>The <b>REPL</b> (typing <code>python3</code> alone) is a live calculator: type Python, press Enter, see the result
+    immediately. Exit with <code>exit()</code> or Ctrl+D. Perfect for testing one line before putting it in a file.</li>
+  </ul>
+
+  <h2>Variables &amp; basic types</h2>
+  <p>Python is <b>dynamically typed</b> — a variable is just a name pointing to a value. No declarations, no
+  <code>int x = ...</code>. You create a variable the moment you assign to it.</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">basics.py</span></div><pre><code class="lang-python">name = "random-forest-v2"   # str — text in quotes
+n_estimators = 300          # int — whole number
+learning_rate = 0.01        # float — decimal number
+is_production = False       # bool — True or False (capitalized!)
+
+# f-strings — the best way to format text: put an f before the quote,
+# then any variable (or expression) inside {curly braces}
+print(f"Training {name} with lr={learning_rate}")
+print(f"accuracy: {0.94123:.2%}")        # accuracy: 94.12%  (:.2% = 2 decimals as percent)
+
+# multiple assignment &amp; swapping — right side runs first
+features, labels = "X.csv", "y.csv"
+a, b = 1, 2
+a, b = b, a                              # now a=2, b=1
+
+# type hints are optional documentation for humans and tools
+epochs: int = 20
+model_name: str = "clf"</code></pre></div>
+
+  <table>
+    <thead><tr><th>Type</th><th>Examples</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>str</code></td><td><code>"churn-v2"</code></td><td>Names, paths, messages</td></tr>
+      <tr><td><code>int</code></td><td><code>300</code>, <code>-7</code></td><td>Counts, epochs, rows</td></tr>
+      <tr><td><code>float</code></td><td><code>0.94</code>, <code>1e-3</code></td><td>Scores, learning rates</td></tr>
+      <tr><td><code>bool</code></td><td><code>True</code>, <code>False</code></td><td>Flags and switches</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip"><b>💡 Tip:</b> <code>type(x)</code> tells you a value's type, and <code>isinstance(x, int)</code>
+  checks it safely. Names are case-sensitive: <code>Model</code> and <code>model</code> are different variables.</div>
+
+  <div class="try"><b>🏋️ Try it:</b> create variables <code>model_name</code> and <code>accuracy</code>,
+  then print <code>Model rf-v2 scored 94.1%</code> using one f-string with <code>:.1%</code> formatting.
+  Then do <b>Lab 0</b> to set up your machine for real.</div>
+</article>
+
+<!-- ============================== PYTHON 2 ============================== -->
+<article class="topic" id="py-types" data-kw="list tuple dict set data structures sequences dictionary append">
+  <div class="crumb"></div>
+  <h1>Core Data Structures</h1>
+  <p class="lead">Four built-in structures cover 95% of everyday Python. Know when to reach for each one.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a <b>list</b> is a shopping list (ordered, you can add/remove);
+  a <b>tuple</b> is a printed receipt (fixed, can't change it); a <b>dict</b> is a contact card (look things up
+  by label, not position); a <b>set</b> is a guest list (no duplicates, super-fast "are you on it?" checks).</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">structures.py</span></div><pre><code class="lang-python"># LIST — ordered, mutable: your go-to sequence
+accuracies = [0.91, 0.94, 0.89]
+accuracies.append(0.96)      # add to the end → [0.91, 0.94, 0.89, 0.96]
+accuracies[0]                # first item (counting starts at 0!)
+accuracies[-1]               # last item (negative = count from the end)
+accuracies[1:3]              # slice → [0.94, 0.89]  (start included, end excluded)
+len(accuracies)              # how many items
+
+# TUPLE — ordered, immutable: fixed records
+point = (3.5, 7.2)
+x, y = point                 # unpacking: x=3.5, y=7.2
+# point[0] = 9               # ❌ TypeError — tuples cannot change
+
+# DICT — key → value: the workhorse (configs, JSON, metadata)
+model = {"name": "rf_v2", "auc": 0.94, "params": {"depth": 6}}
+model["auc"]                     # 0.94   (KeyError if the key doesn't exist!)
+model.get("owner", "unknown")    # safe access: returns default instead of crashing
+model["params"]["depth"]         # nested access, one level at a time
+model["dataset"] = "customers"   # add or overwrite a key
+for key, value in model.items():
+    print(key, value)
+
+# SET — unique, unordered: dedup &amp; fast membership
+seen = {"cat", "dog", "cat"}     # {'cat', 'dog'} — duplicate silently dropped
+seen.add("bird")
+"cat" in seen                    # True — instant even with millions of items</code></pre></div>
+
+  <table>
+    <thead><tr><th>Structure</th><th>Syntax</th><th>Ordered</th><th>Mutable</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><b>list</b></td><td><code>[1, 2, 3]</code></td><td>✅</td><td>✅</td><td>Sequences, batches, results</td></tr>
+      <tr><td><b>tuple</b></td><td><code>(1, 2)</code></td><td>✅</td><td>❌</td><td>Fixed records, dict keys</td></tr>
+      <tr><td><b>dict</b></td><td><code>{"k": 1}</code></td><td>✅ (3.7+)</td><td>✅</td><td>Lookups, configs, JSON</td></tr>
+      <tr><td><b>set</b></td><td><code>{1, 2}</code></td><td>❌</td><td>✅</td><td>Dedup, membership tests</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip"><b>💡 Why MLOps cares:</b> JSON from APIs and model registries is basically nested dicts and
+  lists — practice walking through them and every MLOps tool will feel familiar.</div>
+
+  <div class="try"><b>🏋️ Try it:</b> build a dict of 3 models with their AUC scores, then use a loop to print
+  only the ones above 0.9. Then do <b>Lab 1</b>, where you write exactly this kind of code.</div>
+</article>
+
+<!-- ============================== PYTHON 3 ============================== -->
+<article class="topic" id="py-flow" data-kw="if else for while match break continue control flow truthiness indentation">
+  <div class="crumb"></div>
+  <h1>Control Flow</h1>
+  <p class="lead">Branching, looping and pattern matching — the logic that drives every pipeline.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a program is a recipe with decisions. <code>if</code> = "if the oven
+  is hot, do X, otherwise Y". <code>for</code> = "for every egg in the box, do Z". That's genuinely all it is.</div>
+
+  <div class="tip"><b>⚠️ The #1 beginner gotcha:</b> in Python, <b>indentation is the grammar</b>.
+  The lines indented under an <code>if</code>/<code>for</code>/<code>def</code> belong to it. Use 4 spaces
+  (or let your editor do it), never mix tabs and spaces — mixing causes
+  <code>IndentationError</code>, the most common beginner error there is.</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">flow.py</span></div><pre><code class="lang-python">score = 0.87
+
+if score &gt;= 0.9:
+    verdict = "ship it 🚀"          # runs only when the first test passes
+elif score &gt;= 0.8:
+    verdict = "review needed"       # checked only if the first failed
+else:
+    verdict = "retrain"             # nothing above matched
+
+# for loops with enumerate (index + value) and zip (two lists side by side)
+for i, acc in enumerate([0.9, 0.8], start=1):
+    print(f"model_{i}: {acc}")      # model_1: 0.9 ...
+
+for name, acc in zip(["rf", "xgb"], [0.91, 0.93]):
+    print(name, acc)                # rf 0.91 / xgb 0.93
+
+# while + break / continue
+attempts = 0
+while attempts &lt; 5:                 # repeat while the condition holds
+    attempts += 1                   # shorthand for attempts = attempts + 1
+    if attempts == 3:
+        continue                    # skip the rest of THIS iteration
+    if attempts == 4:
+        break                       # exit the loop entirely
+
+# match — structural pattern matching (Python 3.10+)
+def handle(event: str) -&gt; str:
+    match event:
+        case "drift_detected":
+            return "retrain"
+        case "deploy_ok" | "deploy_fail":   # | means "or" in a case
+            return "notify"
+        case _:
+            return "ignore"                 # _ = anything else</code></pre></div>
+
+  <div class="tip"><b>💡 Truthiness:</b> empty values — <code>0</code>, <code>""</code>, <code>[]</code>,
+  <code>{}</code>, <code>None</code> — count as false. So <code>if not results:</code> cleanly handles both
+  <code>None</code> and an empty list in one line.</div>
+
+  <div class="try"><b>🏋️ Try it:</b> loop over <code>range(1, 21)</code> and print <code>"fizz"</code> for
+  multiples of 3, <code>"buzz"</code> for 5, the number otherwise. Stuck? <code>range(1, 21)</code> yields
+  1…20, and <code>n % 3 == 0</code> tests divisibility.</div>
+</article>
+
+<!-- ============================== PYTHON 4 ============================== -->
+<article class="topic" id="py-funcs" data-kw="def function arguments kwargs lambda default type hints docstring return">
+  <div class="crumb"></div>
+  <h1>Functions</h1>
+  <p class="lead">Functions are how you turn notebook experiments into reusable pipeline steps.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a function is a recipe: it takes <b>ingredients</b> (arguments),
+  does some work, and hands back a <b>dish</b> (the <code>return</code> value). Write it once, use it everywhere.
+  If you copy-paste the same code twice, it wants to be a function.</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">functions.py</span></div><pre><code class="lang-python">def train(model_name: str, epochs: int = 10, *, verbose: bool = True) -&gt; dict:
+    """Train a model and return its metrics.
+
+    Args:
+        model_name: which algorithm to use.
+        epochs: number of training iterations.
+    """
+    if verbose:
+        print("training", model_name)
+    return {"model": model_name, "epochs": epochs}
+
+train("rf")                      # positional: order matters
+train("rf", epochs=50)           # keyword: clearer at call sites
+train("rf", 50, verbose=False)   # verbose is keyword-only (anything after * must be named)
+
+# *args / **kwargs — accept any extra inputs
+def log_event(step, *values, **extra):
+    print(step, values, extra)
+
+log_event("eval", 0.9, 0.88, dataset="test")
+# eval (0.9, 0.88) {'dataset': 'test'}
+
+# lambda — tiny anonymous function, common as a sort key
+runs = [("rf", 0.91), ("xgb", 0.93)]
+best = max(runs, key=lambda r: r[1])   # ('xgb', 0.93)</code></pre></div>
+
+  <h2>Anatomy of the signature</h2>
+  <ul>
+    <li><code>model_name: str</code> — a type <i>hint</i>. Python won't enforce it, but your editor will
+    autocomplete, and tools like <code>mypy</code>, FastAPI and Pydantic rely on it.</li>
+    <li><code>epochs: int = 10</code> — a <b>default value</b>: callers can skip it.</li>
+    <li><code>-&gt; dict</code> — the hint for what comes back.</li>
+    <li>The triple-quoted <b>docstring</b> shows up when you hover the function in an editor and in <code>help(train)</code>.</li>
+  </ul>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">pitfall.py — a classic interview trap</span></div><pre><code class="lang-python"># ⚠️ WRONG: the default list is created ONCE, then shared by every call
+def add_result(result, results=[]):
+    results.append(result)
+    return results
+
+# ✅ RIGHT: use None as the sentinel, create a fresh list inside
+def add_result(result, results=None):
+    if results is None:
+        results = []
+    results.append(result)
+    return results</code></pre></div>
+
+  <div class="try"><b>🏋️ Try it:</b> write <code>def describe_accuracy(acc)</code> that returns
+  <code>"excellent"</code> above 0.9, <code>"ok"</code> above 0.8, else <code>"poor"</code> — with type hints
+  and a docstring. This exact shape of function appears in <b>Lab 2</b>.</div>
+</article>
+
+<!-- ============================== PYTHON 5 ============================== -->
+<article class="topic" id="py-comp" data-kw="comprehension list dict set generator yield lazy memory map filter">
+  <div class="crumb"></div>
+  <h1>Comprehensions &amp; Generators</h1>
+  <p class="lead">Pythonic one-liners for transforming data — and lazy generators for data too big to hold in memory.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a comprehension is a loop collapsed into one line that <i>builds
+  a new collection</i>. A generator is a vending machine for values: it produces one item when asked instead of
+  manufacturing the whole pallet first — which is how you process a 10 GB file on a laptop with 8 GB of RAM.</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">comprehensions.py</span></div><pre><code class="lang-python">scores = [0.91, 0.55, 0.94, 0.72, 0.88]
+
+# [expression for item in iterable if condition]
+good = [s for s in scores if s &gt;= 0.8]           # [0.91, 0.94, 0.88]
+labels = ["good" if s &gt;= 0.8 else "bad" for s in scores]   # if/else goes BEFORE for
+
+# dict and set comprehensions — same shape, different brackets
+id_to_score = {i: s for i, s in enumerate(scores)}
+unique_ops = {op.lower() for op in ["GET", "post", "GET"]}   # {'get', 'post'}
+
+# nested loops flatten left-to-right (read like the equivalent nested for)
+matrix = [[1, 2], [3, 4]]
+flat = [n for row in matrix for n in row]        # [1, 2, 3, 4]
+
+# generator expression — lazy, constant memory
+big = (n * n for n in range(1_000_000))          # note: parentheses, not brackets
+total = sum(big)                                 # computed on demand
+
+# generator function — 'yield' produces values one at a time
+def read_lines(path):
+    with open(path) as f:
+        for line in f:
+            yield line.strip()
+
+# for line in read_lines("train.log"):
+#     process(line)   # never loads the whole file into memory</code></pre></div>
+
+  <div class="tip"><b>💡 Why MLOps cares:</b> huge datasets shouldn't be loaded fully into RAM.
+  Generators and chunked processing (<code>pandas.read_csv(chunksize=...)</code>) keep pipelines memory-safe.
+  Rule of thumb: <code>[...]</code> when you need the whole list, <code>(...)</code> when you'll loop once.</div>
+
+  <div class="try"><b>🏋️ Try it:</b> given a list of run dicts, use a dict comprehension to build
+  <code>{run_id: auc}</code> for runs with <code>auc &gt; 0.9</code>.</div>
+</article>
+
+<!-- ============================== PYTHON 6 ============================== -->
+<article class="topic" id="py-oop" data-kw="class object init inheritance super dataclass property repr oop self">
+  <div class="crumb"></div>
+  <h1>Classes &amp; OOP</h1>
+  <p class="lead">You don't need deep OOP for MLOps, but you'll read classes everywhere — sklearn models,
+  Airflow operators, FastAPI apps.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a <b>class</b> is a blueprint; an <b>object</b> (instance) is a house
+  built from it. <code>__init__</code> is the construction crew that runs when the object is born, and
+  <code>self</code> simply means "this particular house". Methods are abilities the house has.</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">models.py</span></div><pre><code class="lang-python">class Model:
+    kind = "base"                          # class attribute — shared by all instances
+
+    def __init__(self, name: str, version: int = 1):
+        self.name = name                   # instance attributes — each object has its own
+        self.version = version
+
+    def predict(self, x: list[float]) -&gt; list[float]:
+        return [xi * 2 for xi in x]        # fake model
+
+    def __repr__(self) -&gt; str:             # what print() shows
+        return f"{self.kind}:{self.name}-v{self.version}"
+
+class LightGBMModel(Model):                # inheritance: gets everything Model has
+    kind = "lgbm"
+
+    def __init__(self, name, leaves=31):
+        super().__init__(name)             # run the parent's constructor first
+        self.leaves = leaves               # then add our own attribute
+
+m = LightGBMModel("churn")
+print(m)                                   # lgbm:churn-v1
+print(isinstance(m, Model))                # True — it IS a Model too
+
+# @property — a computed value that reads like a field, no parentheses
+class Metric:
+    def __init__(self, value: float):
+        self._value = value
+
+    @property
+    def percent(self) -&gt; float:
+        return round(self._value * 100, 1)
+
+Metric(0.9412).percent                     # 94.1</code></pre></div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">config.py — dataclasses for configs</span></div><pre><code class="lang-python">from dataclasses import dataclass, field
+
+@dataclass
+class RunConfig:
+    experiment: str
+    epochs: int = 10
+    tags: list[str] = field(default_factory=list)   # mutable defaults need this
+
+cfg = RunConfig("churn-weekly", epochs=25)
+print(cfg)     # RunConfig(experiment='churn-weekly', epochs=25, tags=[])</code></pre></div>
+
+  <div class="tip"><b>💡 Tip:</b> use <code>@dataclass</code> for training configs and result objects —
+  it auto-generates <code>__init__</code>, <code>__repr__</code> and equality, which pairs perfectly with
+  experiment tracking. You'll meet classes for real in <b>Lab 6</b>, where FastAPI is built from them.</div>
+</article>
+
+<!-- ============================== PYTHON 7 ============================== -->
+<article class="topic" id="py-errors" data-kw="try except finally raise exception traceback file open json pathlib import module main">
+  <div class="crumb"></div>
+  <h1>Errors, Files &amp; Modules</h1>
+  <p class="lead">Robust scripts fail loudly and cleanly — and the #1 beginner skill is knowing how to read an error.</p>
+
+  <h2>How to read a traceback (do this first, always)</h2>
+  <p>When Python crashes it prints a <b>traceback</b>. Newbies freeze; you're about to be the person who reads it.</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">example crash output</span></div><pre><code class="lang-text">Traceback (most recent call last):
+  File "src/train.py", line 12, in &lt;module&gt;        ← where YOUR code was when it died
+    df = pd.read_csv("data/customers.csv")
+  File "pandas/io/parsers/readers.py", line 912, in read_csv
+    ...                                            ← the path through library code (skim it)
+FileNotFoundError: [Errno 2] No such file or directory: 'data/customers.csv'
+                                                   ↑ THE actual error — read THIS line first</code></pre></div>
+  <ol>
+    <li><b>Read the last line first:</b> error type + message. <code>FileNotFoundError</code> is self-explanatory.</li>
+    <li><b>Find your own file</b> in the trace (here <code>src/train.py</code>) and go to that line (12).</li>
+    <li>Fix the cause: here, the file doesn't exist or you ran the script from the wrong folder.</li>
+  </ol>
+
+  <h2>Exception handling</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">errors.py</span></div><pre><code class="lang-python">try:
+    model = load_model("models/churn.pkl")   # risky operation goes here
+except FileNotFoundError as e:
+    print("model missing:", e)               # handles THAT error and carries on
+    model = None
+else:
+    print("loaded OK")                       # runs only if no exception happened
+finally:
+    print("done")                            # always runs — perfect for cleanup
+
+def validate_accuracy(acc: float) -&gt; None:
+    if not 0.0 &lt;= acc &lt;= 1.0:
+        raise ValueError(f"accuracy out of range: {acc}")   # fail loudly on bad input
+
+class DataValidationError(Exception):
+    """Raised when input data fails quality checks."""      # your own error type</code></pre></div>
+
+  <h2>Files &amp; paths</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">files.py</span></div><pre><code class="lang-python">import json
+from pathlib import Path
+
+# 'with' closes the file for you, even if an error happens inside the block
+with open("metrics.json", "w") as f:         # "w" = write (overwrites!), "a" = append
+    json.dump({"auc": 0.94}, f)
+
+with open("metrics.json") as f:              # default mode is read
+    data = json.load(f)
+
+# pathlib — modern path handling, works on mac/Linux/Windows
+raw = Path("data") / "raw.csv"               # / joins paths — no string surgery
+if raw.exists():
+    text = raw.read_text()
+Path("reports").mkdir(parents=True, exist_ok=True)</code></pre></div>
+
+  <h2>Modules &amp; the main guard</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">modules.py</span></div><pre><code class="lang-python"># utils.py — any .py file is a "module" (a toolbox)
+def clean(df): ...
+
+# main.py — another file can reuse it
+from utils import clean     # import one function
+import utils                # or the whole module: utils.clean(df)
+
+if __name__ == "__main__":
+    main()                  # runs only when executed directly, not on import</code></pre></div>
+
+  <div class="tip"><b>💡 Tips:</b> don't swallow exceptions with a bare <code>except:</code> — catch specific
+  errors and let what you can't handle bubble up. Silent failures are the worst MLOps bug. And the
+  <code>__main__</code> guard is why a file can be both a reusable module <i>and</i> a runnable script.</div>
+</article>
+
+<!-- ============================== PYTHON 8 ============================== -->
+<article class="topic" id="py-ds" data-kw="numpy pandas scikit-learn dataframe array train test split fit predict model">
+  <div class="crumb"></div>
+  <h1>Python for Data &amp; ML</h1>
+  <p class="lead">The three libraries every ML system is built on: NumPy for arrays, pandas for tables,
+  scikit-learn for models.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> <b>NumPy</b> does math on whole grids of numbers at once
+  (fast, written in C). <b>pandas</b> is Excel-in-code: named columns, filtering, grouping. <b>scikit-learn</b>
+  is a giant toolbox of ML algorithms that all share one pattern: <b>create → <code>fit</code> → <code>predict</code></b>.
+  Learn that pattern once and it works for hundreds of models.</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">numpy_basics.py</span></div><pre><code class="lang-python">import numpy as np
+
+X = np.array([[1.0, 2.0],
+              [3.0, 4.0],
+              [5.0, 6.0]])
+
+X.shape            # (3, 2) — 3 rows, 2 columns
+X.mean(axis=0)     # mean of each column
+X * 2              # vectorized math — multiplies every element, no Python loops
+X[:, 0]            # first column (row slice :, column 0)
+np.percentile(X, 95)   # quantiles — used all the time in monitoring</code></pre></div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">pandas_basics.py</span></div><pre><code class="lang-python">import pandas as pd
+
+df = pd.read_csv("data/train.csv")   # the classic first line of every ML script
+df.head()                            # first 5 rows — always look before you model!
+df.shape                             # (rows, columns)
+df.dtypes                            # what pandas thinks each column is
+df.describe()                        # count/mean/std/min/max per numeric column
+df["price"].isnull().sum()           # how many missing values in a column
+df.groupby("city")["price"].mean()   # split → aggregate → combine
+df["log_price"] = np.log1p(df["price"])   # create a new column from an existing one</code></pre></div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">sklearn_basics.py</span></div><pre><code class="lang-python">from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+X, y = df[["age", "tenure", "balance"]], df["churn"]   # features vs target
+
+# hold out 20% as an "exam" the model never sees during training
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42               # seed → reproducible split
+)
+
+model = RandomForestClassifier(n_estimators=200, random_state=42)
+model.fit(X_train, y_train)                # learn from the training set
+print("accuracy:", model.score(X_test, y_test))   # grade on the unseen set</code></pre></div>
+
+  <div class="tip"><b>💡 Why hold out a test set?</b> A model can memorize training data like a student who
+  memorized last year's exam. Testing on unseen data measures whether it actually <i>learned the subject</i>.
+  <code>random_state=42</code> just makes the (random) split the same every run — reproducibility again.</div>
+
+  <div class="try"><b>🏋️ Try it:</b> download any CSV (e.g. the Titanic dataset), load it with pandas, print
+  missing-value counts, and train a baseline <code>RandomForestClassifier</code>. Or skip straight to
+  <b>Lab 2</b>, where we build this properly with our own dataset.</div>
+</article>
+
+<!-- ============================== MLOPS 1 ============================== -->
+<article class="topic" id="ml-what" data-kw="mlops lifecycle devops maturity continuous training drift levels automation">
+  <div class="crumb"></div>
+  <h1>What is MLOps?</h1>
+  <p class="lead">MLOps applies DevOps practices — version control, CI/CD, automation, monitoring — to ML systems,
+  where <b>data and models</b> change alongside code.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> writing a model in a notebook is like cooking one great meal.
+  MLOps is everything needed to serve that meal every day for a year: the recipe written down, ingredients
+  checked, a kitchen that works the same every time, and someone noticing when the food goes off.</div>
+
+  <div class="plain">🧠 <b>A story you should feel:</b> a team ships a fraud model at 92% accuracy. Six months
+  later fraudsters have adapted, accuracy quietly drops to 71% — and <i>nobody notices</i>, because nothing was
+  monitoring it. Worse, nobody can recreate the original model: the data changed, the code changed, and the
+  parameters lived in a deleted notebook. MLOps exists so this never happens to you.</div>
+
+  <h2>The ML lifecycle</h2>
+  <div class="pipeline">
+    <div class="stage">Data<small>collect · validate</small></div><span class="parr">→</span>
+    <div class="stage">Features<small>engineer · store</small></div><span class="parr">→</span>
+    <div class="stage">Train<small>experiment · track</small></div><span class="parr">→</span>
+    <div class="stage">Evaluate<small>quality gates</small></div><span class="parr">→</span>
+    <div class="stage">Register<small>version models</small></div><span class="parr">→</span>
+    <div class="stage">Deploy<small>serve · release</small></div><span class="parr">→</span>
+    <div class="stage">Monitor<small>drift · metrics</small></div><span class="parr">↺</span>
+  </div>
+  <ul>
+    <li><b>Data</b> — land raw data, check it's sane (right columns, no surprises).</li>
+    <li><b>Features</b> — turn raw fields into model inputs (log-transforms, encodings).</li>
+    <li><b>Train</b> — run experiments; record every parameter and metric (Lab 4).</li>
+    <li><b>Evaluate</b> — quality gates: does the new model beat the current one?</li>
+    <li><b>Register</b> — version the model, promote it staging → production.</li>
+    <li><b>Deploy</b> — serve it as an API or batch job (Labs 6–7).</li>
+    <li><b>Monitor</b> — watch for drift and decay; feed the decision to retrain (Lab 9).</li>
+  </ul>
+  <p>The loop is the point: monitoring feeds decisions to retrain, which goes through the same
+  versioned, automated path as the first release.</p>
+
+  <h2>Why "just deploy the model" fails</h2>
+  <ul>
+    <li><b>Models decay:</b> the world changes (data drift) and quality silently drops after deployment.</li>
+    <li><b>Reproducibility:</b> "which data, code and parameters produced this model?" must always have an answer.</li>
+    <li><b>Collaboration:</b> data scientists, engineers and ops need shared pipelines, not one person's laptop.</li>
+    <li><b>Testing is different:</b> you test code <i>and</i> data schemas <i>and</i> model quality.</li>
+    <li><b>Continuous training (CT):</b> unlike classic DevOps, ML needs automated retraining triggers.</li>
+  </ul>
+
+  <h2>Maturity levels</h2>
+  <table>
+    <thead><tr><th>Level</th><th>Name</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><b>0</b></td><td>Manual</td><td>Notebook → manual script run → manual deploy. Fine for prototypes only.</td></tr>
+      <tr><td><b>1</b></td><td>ML pipeline automation</td><td>Automated, scheduled training pipeline with experiment tracking and auto-deploy of validated models.</td></tr>
+      <tr><td><b>2</b></td><td>CI/CD automation</td><td>The pipeline itself is built, tested and deployed automatically — full DevOps rigor applied to ML.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="try"><b>🏋️ Try it:</b> sketch your current project against the lifecycle above and mark each
+  stage as <b>manual</b>, <b>scripted</b>, or <b>automated</b>. That map is your MLOps roadmap — and by
+  <b>Lab 8</b> every stage of our toy project will be at least scripted.</div>
+</article>
+
+<!-- ============================== MLOPS 2 ============================== -->
+<article class="topic" id="ml-env" data-kw="venv pip conda environment dependencies requirements pyproject poetry uv pinning versions">
+  <div class="crumb"></div>
+  <h1>Environments &amp; Dependencies</h1>
+  <p class="lead">Rule #1 of reproducible ML: one isolated environment per project, with pinned versions.
+  "It worked on my machine" is a bug, not an excuse.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a library gets updated, its behavior subtly changes, and your
+  model's predictions change — without you touching any code. An environment freezes the exact toolbox you used,
+  like photographing your workbench so anyone can rebuild it exactly.</div>
+
+  <div class="plain">🧠 <b>Reading version numbers:</b> <code>scikit-learn==1.5.2</code> means
+  <i>major.minor.patch</i>. Patches (1.5.2 → 1.5.3) are bug fixes; minors (1.5 → 1.6) add features; majors
+  can break things. For training/serving parity, pin exactly.</div>
+
+  <h2>venv + pip (the standard — this is what the labs use)</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">python3 -m venv .venv                  # create
+source .venv/bin/activate              # activate (macOS / Linux)
+.venv\Scripts\activate                 # activate (Windows PowerShell)
+
+pip install scikit-learn pandas fastapi uvicorn
+pip freeze &gt; requirements.txt          # capture exact versions
+pip install -r requirements.txt        # reproduce elsewhere
+
+deactivate                             # leave the environment</code></pre></div>
+
+  <h2>conda (popular in data science)</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">conda create -n mlops python=3.12
+conda activate mlops
+conda install pandas scikit-learn
+conda env export &gt; environment.yml     # shareable spec
+conda env remove -n mlops</code></pre></div>
+
+  <h2>Modern option: pyproject.toml</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">pyproject.toml</span></div><pre><code class="lang-toml">[project]
+name = "churn-model"
+version = "0.1.0"
+requires-python = "&gt;=3.10"
+dependencies = [
+    "scikit-learn&gt;=1.5",
+    "pandas&gt;=2.2",
+    "fastapi&gt;=0.111",
+]</code></pre></div>
+  <p>Tools like <b>uv</b> and <b>Poetry</b> read this file, resolve and lock dependencies
+  (<code>uv sync</code>, <code>poetry lock</code>) — great for teams and CI.</p>
+
+  <div class="tip"><b>💡 Tips:</b> commit <code>requirements.txt</code> (or the lock file), never the venv
+  itself. Run <code>pip freeze &gt; requirements.txt</code> again whenever you install something new —
+  the labs do exactly this so the file stays honest.</div>
+</article>
+
+<!-- ============================== MLOPS 3 ============================== -->
+<article class="topic" id="ml-git" data-kw="git version control branch commit merge pull request gitignore save point">
+  <div class="crumb"></div>
+  <h1>Git for ML Projects</h1>
+  <p class="lead">Git versions your <b>code</b>. It's the backbone every other MLOps tool hangs off —
+  CI triggers on push, DVC versions data alongside it, reviews happen in PRs.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> Git is a save-game system for your project. A <b>commit</b> is a
+  save point you can always reload. A <b>branch</b> is a parallel universe where you try something risky;
+  <b>merge</b> brings successful experiments back into the main timeline. Nothing is ever "final_final_v2_REALLY.py" again.</div>
+
+  <h2>The daily loop (internalize these four)</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">git status                     # 1. what changed? (run this constantly)
+git add .                      # 2. stage the changes you want to save
+git commit -m "Add training pipeline"   # 3. save a named snapshot
+git push                       # 4. upload snapshots to the shared remote (GitHub)</code></pre></div>
+
+  <h2>Branches, history and repair</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">git init                                  # start a repo (once, per project)
+git checkout -b feature/drift-monitor     # new branch — experiment safely
+git switch main                           # go back to main
+git merge feature/drift-monitor           # bring the experiment back in
+git pull &amp;&amp; git push                      # sync with the remote
+git stash                                 # park uncommitted work for a moment
+git log --oneline                         # compact history
+git restore file.py                       # throw away local changes to a file
+git reset --soft HEAD~1                   # undo last commit, keep the changes</code></pre></div>
+
+  <h2>A good .gitignore for ML repos</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">.gitignore</span></div><pre><code class="lang-text"># data, models and secrets never belong in git
+data/
+models/
+*.pkl
+*.joblib
+*.csv
+mlruns/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.env
+.DS_Store</code></pre></div>
+
+  <div class="plain">🧠 <b>Why ignore data and models?</b> Git stores every version of everything, forever.
+  A 200 MB dataset updated weekly makes the repo unusable. Git for <i>text</i> (code), DVC for <i>blobs</i>
+  (data &amp; models) — that's Lab 5.</div>
+
+  <ul>
+    <li><b>Small, frequent commits</b> with clear messages beat weekly "misc fixes" dumps.</li>
+    <li><b>Open PRs</b> even for solo projects — it's your review trail and CI trigger.</li>
+    <li><b>Tag releases</b> that map to model versions: <code>git tag model-v1.2.0</code>.</li>
+  </ul>
+</article>
+
+<!-- ============================== MLOPS 4 ============================== -->
+<article class="topic" id="ml-track" data-kw="mlflow experiment tracking params metrics artifacts registry wandb autolog runs">
+  <div class="crumb"></div>
+  <h1>Experiment Tracking (MLflow)</h1>
+  <p class="lead">"Which of my 40 runs had the best AUC, and exactly what data, code and parameters produced it?"
+  Tracking tools answer that for you, automatically.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a tracker is a lab notebook that fills itself in. Every training
+  run becomes a row: its settings (<b>params</b>), its results (<b>metrics</b>), and its files
+  (<b>artifacts</b>, like the trained model). A web UI lets you sort and compare. <code>mlruns/</code> is just
+  a local folder where MLflow stores all of it.</div>
+
+  <h2>Track a real training run</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">track.py</span></div><pre><code class="lang-python">import mlflow
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score
+
+mlflow.set_experiment("churn-classifier")     # runs are grouped under this name
+
+with mlflow.start_run(run_name="rf-300-trees"):
+    mlflow.log_params({"n_estimators": 300, "max_depth": 6})   # the INPUTS
+
+    model = RandomForestClassifier(n_estimators=300, max_depth=6,
+                                   random_state=42)
+    model.fit(X_train, y_train)
+    auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+
+    mlflow.log_metric("auc", auc)                       # the OUTPUTS
+    mlflow.sklearn.log_model(model, "model")            # the pickled model itself
+    mlflow.log_artifact("confusion_matrix.png")         # any extra file</code></pre></div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">mlflow ui --port 5000        # open http://localhost:5000
+                             # compare runs, params &amp; metrics side by side</code></pre></div>
+
+  <h2>Concepts worth knowing</h2>
+  <ul>
+    <li><b>Run:</b> one execution with its params, metrics, and artifacts — comparable in the UI.</li>
+    <li><b>Autologging:</b> <code>mlflow.sklearn.autolog()</code> (and XGBoost/LightGBM equivalents) capture everything with one line.</li>
+    <li><b>Model Registry:</b> promotes a run's model to <i>Staging</i> / <i>Production</i> with version numbers — the bridge between training and serving.</li>
+    <li><b>Alternatives:</b> Weights &amp; Biases, Neptune, Comet — the concepts transfer directly.</li>
+  </ul>
+
+  <div class="try"><b>🏋️ Try it:</b> take the sklearn script from the Python track, add MLflow tracking,
+  run three experiments with different <code>n_estimators</code>, and pick the winner in the UI.
+  <b>Lab 4</b> walks you through every step.</div>
+</article>
+
+<!-- ============================== MLOPS 5 ============================== -->
+<article class="topic" id="ml-dvc" data-kw="dvc data versioning model versioning pipeline reproducibility remote storage pointer">
+  <div class="crumb"></div>
+  <h1>Data &amp; Model Versioning (DVC)</h1>
+  <p class="lead">Git can't handle 2 GB datasets or model binaries. DVC stores the <b>data</b> in cheap storage
+  (S3, GCS, GDrive) while git stores tiny <b>pointer files</b> — so every commit pins an exact dataset.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> <code>dvc add data.csv</code> moves the big file into a local
+  warehouse (the <b>cache</b>) and leaves a tiny bookmark (<code>data.csv.dvc</code>) behind. The bookmark goes in
+  git; the warehouse content goes to cloud storage with <code>dvc push</code>. Anyone who checks out your commit
+  runs <code>dvc pull</code> and gets the exact bytes you trained on.</div>
+
+  <h2>Version your first file</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">dvc init                                   # one-time, inside the git repo
+dvc add data/train.csv                     # hash &amp; cache the file
+git add data/train.csv.dvc .gitignore      # commit the pointer, not the data
+git commit -m "Add training data v1"
+
+dvc remote add -d storage s3://my-bucket/dvc   # S3 / GCS / GDrive / SSH / a local dir
+dvc push                                       # upload cached data
+dvc pull                                       # fetch on a laptop or CI box</code></pre></div>
+
+  <h2>Pipelines: <code>dvc.yaml</code></h2>
+  <p>Declare each pipeline stage with its command, dependencies and outputs. DVC then re-runs <i>only</i> what changed:</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">dvc.yaml</span></div><pre><code class="lang-yaml">stages:
+  prepare:
+    cmd: python prepare.py
+    deps:
+      - data/raw.csv
+      - prepare.py
+    outs:
+      - data/train.csv
+  train:
+    cmd: python train.py
+    deps:
+      - data/train.csv
+      - train.py
+    outs:
+      - models/model.pkl
+    metrics:
+      - metrics.json</code></pre></div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">dvc repro            # rerun only the stages whose inputs changed
+dvc metrics diff     # compare metrics against the previous version</code></pre></div>
+
+  <div class="tip"><b>💡 The mental model:</b> git tracks <i>code</i>, DVC tracks <i>data &amp; models</i>,
+  and together they make any historical result reproducible with two commands: <code>git checkout</code> + <code>dvc checkout</code>.
+  <b>Lab 5</b> does all of this with a local-folder remote — no cloud account needed.</div>
+</article>
+
+<!-- ============================== MLOPS 6 ============================== -->
+<article class="topic" id="ml-docker" data-kw="docker container image dockerfile build run registry deploy lunchbox layers">
+  <div class="crumb"></div>
+  <h1>Docker for ML</h1>
+  <p class="lead">Docker packages your code, dependencies and system libraries into an <b>image</b> that runs
+  identically on a laptop, in CI, and in production. It kills "works on my machine" for good.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> an <b>image</b> is a frozen lunchbox containing your app plus
+  its very own Python, libraries, and OS bits. A <b>container</b> is that lunchbox actually running. The Python
+  inside doesn't care what's installed on the host — so the container that worked on your laptop works on the server.</div>
+
+  <h2>A Dockerfile for a model API</h2>
+  <p>A Dockerfile is the recipe Docker follows to build the image. Each line creates a <b>layer</b> that gets cached:</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">Dockerfile</span></div><pre><code class="lang-docker">FROM python:3.12-slim              # small, pinned base image (Python included)
+
+WORKDIR /app                       # the folder inside the container
+
+COPY requirements.txt .            # copy deps first → this layer is cached,
+RUN pip install --no-cache-dir -r requirements.txt   # so code changes rebuild fast
+
+COPY . .                           # then the code (respects .dockerignore)
+
+EXPOSE 8000                        # documentation: the app listens on this port
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]   # run on start</code></pre></div>
+
+  <h2>Everyday commands</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">docker build -t churn-api:v1 .         # build the image (the . is the build context)
+docker run -p 8000:8000 churn-api:v1   # run a container; -p maps host:container port
+docker ps                              # list running containers
+docker logs -f churn-api               # follow container logs
+docker exec -it churn-api bash         # shell inside the container
+docker image ls                        # list local images
+docker system prune                    # reclaim disk space</code></pre></div>
+
+  <ul>
+    <li>Add a <b>.dockerignore</b> (<code>.venv/</code>, <code>data/</code>, <code>.git/</code>) — builds get faster and smaller.</li>
+    <li><b>Never bake secrets</b> into images — pass them at runtime via environment variables.</li>
+    <li>The exact image you test in CI is the image you ship — that's the whole point.</li>
+  </ul>
+
+  <div class="try"><b>🏋️ Try it:</b> <b>Lab 7</b> containerizes the API you build in Lab 6 — build, run,
+  and curl it, all inside the container.</div>
+</article>
+
+<!-- ============================== MLOPS 7 ============================== -->
+<article class="topic" id="ml-serve" data-kw="fastapi uvicorn api serve endpoint pydantic json rest inference batch realtime">
+  <div class="crumb"></div>
+  <h1>Serving Models (FastAPI)</h1>
+  <p class="lead">A trained model only creates value when something can call it. FastAPI wraps a model in a
+  clean HTTP API with automatic request validation and interactive docs.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> an <b>API endpoint</b> is a URL that does something when you
+  send it data — a waiter between your app and the outside world. The data travels as <b>JSON</b> text like
+  <code>{"age": 34}</code>. <b>Pydantic</b> is the bouncer at the door: it checks every order matches the
+  menu before it reaches your model.</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">main.py</span></div><pre><code class="lang-python">from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from pydantic import BaseModel
+import joblib
+
+model = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model
+    model = joblib.load("models/churn.pkl")   # load ONCE at startup, not per request
+    yield                                     # ...app serves requests here...
+
+app = FastAPI(title="Churn Prediction API", lifespan=lifespan)
+
+class Customer(BaseModel):        # request schema — validated automatically
+    tenure_months: int
+    monthly_charges: float
+    has_internet: bool
+
+class Prediction(BaseModel):      # response schema — documents the output too
+    churn_probability: float
+    model_version: str
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}       # load balancers ping this constantly
+
+@app.post("/predict", response_model=Prediction)
+def predict(c: Customer) -&gt; Prediction:
+    features = [[c.tenure_months, c.monthly_charges, int(c.has_internet)]]
+    prob = model.predict_proba(features)[0][1]     # probability of class "1" (churn)
+    return Prediction(churn_probability=round(float(prob), 4),
+                      model_version="1.0.0")</code></pre></div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">uvicorn main:app --reload        # dev server with hot reload
+
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"tenure_months": 4, "monthly_charges": 89.9, "has_internet": true}'
+
+# interactive docs are generated for free:
+# http://localhost:8000/docs</code></pre></div>
+
+  <ul>
+    <li><b>Real-time serving:</b> an HTTP API like this, scaled with replicas behind a load balancer.</li>
+    <li><b>Batch scoring:</b> a scheduled job scores a table nightly — simpler, often good enough.</li>
+    <li><b>Pydantic schemas</b> are your first line of defense: bad inputs get a clean 422 error before touching the model.</li>
+  </ul>
+
+  <div class="try"><b>🏋️ Try it:</b> <b>Lab 6</b> builds this exact API for the model you trained in Lab 2 —
+  and tests it through the browser-based docs page, no curl experience needed.</div>
+</article>
+
+<!-- ============================== MLOPS 8 ============================== -->
+<article class="topic" id="ml-cicd" data-kw="ci cd github actions pipeline tests deploy canary blue green shadow quality gate workflow">
+  <div class="crumb"></div>
+  <h1>CI/CD for ML</h1>
+  <p class="lead">CI/CD automates the path from commit to production: on every push, run lint + tests, build the
+  image, and deploy only if quality gates pass.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> <b>CI</b> (continuous integration) is a robot that checks out
+  your code on every push and runs the same checks a careful reviewer would — lint, tests, build.
+  <b>CD</b> (continuous delivery/deployment) is the robot that then ships it. Humans review the robot's report,
+  not the raw code diff.</div>
+
+  <h2>GitHub Actions example</h2>
+  <p>Drop a YAML file in <code>.github/workflows/</code> and GitHub runs it on every push. Anatomy:
+  <code>on</code> = when, <code>jobs</code> = parallel workers, <code>steps</code> = what each worker does.</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">.github/workflows/ci.yml</span></div><pre><code class="lang-yaml">name: ci
+on: [push, pull_request]           # when to run
+
+jobs:
+  test:
+    runs-on: ubuntu-latest         # a fresh Linux VM
+    steps:
+      - uses: actions/checkout@v4          # reuse: download the repo
+      - uses: actions/setup-python@v5      # reuse: install Python
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: ruff check .              # lint — catch errors before runtime
+      - run: pytest tests/ -q          # unit tests
+
+  build:
+    needs: test                        # only builds if the test job passed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t churn-api:${{ github.sha }} .
+      # next steps: push to a registry, then deploy</code></pre></div>
+
+  <h2>What "testing" means for ML</h2>
+  <ul>
+    <li><b>Unit tests</b> — feature functions, validation logic, API endpoints (pytest — built in Lab 8).</li>
+    <li><b>Data validation</b> — schema, ranges, missing rates (Great Expectations, Pandera).</li>
+    <li><b>Model quality gates</b> — fail the pipeline if AUC drops below the last production model.</li>
+  </ul>
+
+  <h2>Deployment strategies</h2>
+  <table>
+    <thead><tr><th>Strategy</th><th>How it works</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td><b>Blue-green</b></td><td>Two identical environments; switch traffic at once</td><td>Fast, safe rollbacks</td></tr>
+      <tr><td><b>Canary</b></td><td>Send 5% of traffic to the new model, watch, then ramp up</td><td>Risky model changes</td></tr>
+      <tr><td><b>Shadow</b></td><td>New model receives traffic but responses are only logged</td><td>Validating with zero user impact</td></tr>
+    </tbody>
+  </table>
+</article>
+
+<!-- ============================== MLOPS 9 ============================== -->
+<article class="topic" id="ml-orchestrate" data-kw="airflow dag orchestration scheduler prefect dagster kubeflow pipeline tasks retries">
+  <div class="crumb"></div>
+  <h1>Orchestration (Airflow)</h1>
+  <p class="lead">Real pipelines have many steps with dependencies, schedules and retries. Orchestrators define
+  them as code, run them on schedule, and show you exactly what succeeded or failed.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> a <b>DAG</b> is your pipeline drawn as a flowchart of tasks with
+  arrows ("prepare <i>then</i> train <i>then</i> evaluate"). The <b>scheduler</b> is an alarm clock that runs the
+  flowchart on time, retries failures automatically, and keeps logs — so nobody has to remember to
+  "run train.py on Mondays".</div>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">dags/churn_pipeline.py</span></div><pre><code class="lang-python">from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime
+
+def prepare(): ...       # extract + validate raw data
+def train(): ...         # train + log with MLflow
+def evaluate(): ...      # quality gates against production model
+def deploy(): ...        # register &amp; release if gates pass
+
+with DAG(
+    dag_id="churn_pipeline",
+    schedule="@weekly",                 # run every week
+    start_date=datetime(2026, 1, 1),
+    catchup=False,                      # don't backfill missed weeks
+) as dag:
+    t1 = PythonOperator(task_id="prepare", python_callable=prepare)
+    t2 = PythonOperator(task_id="train", python_callable=train)
+    t3 = PythonOperator(task_id="evaluate", python_callable=evaluate)
+    t4 = PythonOperator(task_id="deploy", python_callable=deploy)
+
+    t1 &gt;&gt; t2 &gt;&gt; [t3, t4]                # dependencies: prepare → train → (eval, deploy)</code></pre></div>
+
+  <h2>Core concepts</h2>
+  <ul>
+    <li><b>DAG</b> — the whole pipeline as a graph of tasks with dependencies.</li>
+    <li><b>Scheduler</b> — triggers runs on a schedule; each run gets its own logs and retry behavior.</li>
+    <li><b>UI</b> — see every run's status, drill into failed task logs, retrigger manually.</li>
+    <li><b>Alternatives:</b> Prefect and Dagster (pythonic, modern), Kubeflow Pipelines (Kubernetes),
+    or plain <code>cron</code> + a script for genuinely simple jobs.</li>
+  </ul>
+
+  <div class="tip"><b>💡 Tip:</b> keep orchestration thin — DAGs should just call functions that live in your
+  versioned package. Testing business logic shouldn't require Airflow. Airflow needs its own database and
+  scheduler process, so it's a "later" tool — the concepts are what matter now.</div>
+</article>
+
+<!-- ============================== MLOPS 10 ============================== -->
+<article class="topic" id="ml-monitor" data-kw="monitoring drift data concept evidently prometheus grafana retraining triggers metrics">
+  <div class="crumb"></div>
+  <h1>Monitoring &amp; Drift</h1>
+  <p class="lead">Deployment isn't the finish line — it's the start of the feedback loop. Models decay silently
+  unless you watch them.</p>
+
+  <div class="plain">🧠 <b>In plain words:</b> your model is a student who studied the world of 2025. The world
+  of 2026 is different. <b>Data drift</b> = the questions changed (inputs look different).
+  <b>Concept drift</b> = the answers changed (same inputs, different outcomes). Both quietly rot accuracy
+  unless someone is looking — that someone is a monitoring job, not a person.</div>
+
+  <h2>Two kinds of drift</h2>
+  <table>
+    <thead><tr><th>Type</th><th>What changes</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Data drift</b></td><td>Input feature distributions shift</td><td>New customer segment appears — ages skew younger than training data</td></tr>
+      <tr><td><b>Concept drift</b></td><td>The relationship X → y changes</td><td>Fraud patterns evolve — same signals, different meaning</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What to monitor in production</h2>
+  <ul>
+    <li><b>System health:</b> request latency (p95), error rate, throughput — classic observability (Prometheus + Grafana).</li>
+    <li><b>Input drift:</b> feature distributions vs. the training reference.</li>
+    <li><b>Output drift:</b> prediction distribution shifts (e.g. churn rate suddenly doubles).</li>
+    <li><b>True quality:</b> accuracy/AUC on delayed ground-truth labels, when they arrive.</li>
+  </ul>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">drift_check.py — Evidently</span></div><pre><code class="lang-python">from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset
+
+report = Report(metrics=[DataDriftPreset()])
+report.run(reference_data=train_df, current_data=live_df)
+report.save_html("drift_report.html")   # visual, shareable drift analysis</code></pre></div>
+
+  <h2>Retraining triggers</h2>
+  <ul>
+    <li><b>Scheduled</b> — weekly/monthly via the orchestrator; simple and predictable.</li>
+    <li><b>Drift-based</b> — a monitor detects drift and kicks off the training pipeline.</li>
+    <li><b>Performance-based</b> — live metric falls below a threshold vs. the registered model.</li>
+  </ul>
+
+  <div class="try"><b>🏋️ Try it:</b> <b>Lab 9</b> generates a deliberately drifted dataset and produces a real
+  Evidently report you can open in your browser — you'll see drift get flagged, not just read about it.</div>
+</article>
+
+<!-- ============================== LAB 0 ============================== -->
+<article class="topic" id="lab-0" data-kw="lab setup install python git venv folders environment machine">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 0 — Machine Setup</h1>
+  <p class="lead">One-time setup: get Python, Git and a clean project structure working on your machine.
+  Every later lab builds on this.</p>
+  <div class="lab-meta"><span>⏱ ~20 min</span><span>🧰 Install: Python, Git (Docker optional, needed for Lab 7)</span><span>📁 Result: a ready <code>churn-predictor</code> project</span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> you can run <code>python --version</code>, you are inside an activated
+  venv, and your project has the folder structure every later lab assumes.</div>
+
+  <h2>Step 1 — Check Python</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">python3 --version        # macOS / Linux
+python --version         # Windows (also try this if python3 fails on mac)</code></pre></div>
+  <p>You want <b>3.10 or newer</b> (e.g. <code>Python 3.12.4</code>). No Python? Install it:
+  <b>macOS</b> — <code>brew install python</code> or python.org; <b>Windows</b> — python.org installer and
+  <b>check "Add Python to PATH"</b> on the first screen (forgetting this causes 90% of Windows problems).</p>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> a version number prints. Write it down; you'll use it later.</div>
+
+  <h2>Step 2 — Create the project folder</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">mkdir -p ~/Desktop/Project/churn-predictor
+cd ~/Desktop/Project/churn-predictor
+mkdir -p data src models tests</code></pre></div>
+  <table>
+    <thead><tr><th>Folder</th><th>What lives there</th></tr></thead>
+    <tbody>
+      <tr><td><code>data/</code></td><td>Datasets (created in Lab 2)</td></tr>
+      <tr><td><code>src/</code></td><td>All your Python code</td></tr>
+      <tr><td><code>models/</code></td><td>Trained model files</td></tr>
+      <tr><td><code>tests/</code></td><td>Automated checks (Lab 8)</td></tr>
+    </tbody>
+  </table>
+  <p>From now on, <b>always run commands from this folder</b> — the labs use relative paths like
+  <code>data/customers.csv</code>, which only resolve from the project root.</p>
+
+  <h2>Step 3 — Create &amp; activate a virtual environment</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">python3 -m venv .venv            # macOS / Linux (python -m venv .venv on Windows)
+source .venv/bin/activate        # macOS / Linux
+.venv\Scripts\activate           # Windows PowerShell</code></pre></div>
+  <p><b>How you know it worked:</b> your prompt now starts with <code>(.venv)</code>. Every lab from here
+  assumes it's active. If you open a new terminal, re-activate with the <code>source</code> line (Step 3 only).</p>
+
+  <h2>Step 4 — Install the core libraries</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">pip install pandas numpy scikit-learn joblib
+pip freeze &gt; requirements.txt</code></pre></div>
+  <ul>
+    <li><b>pandas</b> — tables (like Excel in code) · <b>numpy</b> — fast math on arrays</li>
+    <li><b>scikit-learn</b> — ML algorithms · <b>joblib</b> — save/load trained models</li>
+    <li><code>requirements.txt</code> — the exact versions, so anyone (including future-you) can rebuild this toolbox</li>
+  </ul>
+
+  <h2>Step 5 — Check Git &amp; pick an editor</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">git --version
+code .        # opens the folder in VS Code (if installed)</code></pre></div>
+  <p>No Git? <b>macOS:</b> <code>xcode-select --install</code> · <b>Windows:</b> git-scm.com.
+  VS Code (free) is recommended — with the Python extension it highlights errors as you type.</p>
+
+  <h2>Step 6 — (Optional) Docker, for Lab 7</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">docker --version</code></pre></div>
+  <p>If missing, install <b>Docker Desktop</b> (docker.com) later — you can complete Labs 1–6 without it.</p>
+
+  <div class="codebox"><div class="codebox-head"><span class="fname">final structure</span></div><pre><code class="lang-text">churn-predictor/
+├── .venv/            ← your private toolbox (never commit this)
+├── data/             ← datasets
+├── src/              ← your code lives here
+├── models/           ← trained model files
+├── tests/            ← automated checks (Lab 8)
+└── requirements.txt  ← exact library versions</code></pre></div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> <code>python3: command not found</code> → install
+  Python (Step 1) and reopen the terminal. On Windows, PowerShell may block activation — run
+  <code>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</code> once, then retry.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> create a <code>README.md</code> in the project root with one
+  sentence: what this project is. Future-you (and every lab) will thank you.</div>
+</article>
+
+<!-- ============================== LAB 1 ============================== -->
+<article class="topic" id="lab-1" data-kw="lab python practice script basics exercise run workout">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 1 — Python Workout</h1>
+  <p class="lead">Write and run two tiny scripts so variables, lists, dicts, loops and functions stop being theory.</p>
+  <div class="lab-meta"><span>⏱ ~25 min</span><span>✅ Prereq: Lab 0 (venv active, from project root)</span><span>📁 You'll create: <code>src/basics.py</code>, <code>src/best_model.py</code></span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> both scripts run without errors and produce exactly the expected output shown below.</div>
+
+  <h2>Step 1 — Create <code>src/basics.py</code></h2>
+  <p>Type (or copy) this file. Read the comments — each block is one concept from the Python track.</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/basics.py</span></div><pre><code class="lang-python"># src/basics.py — warm-up: variables, lists, dicts, loops, functions
+
+# 1. Variables: names that store values
+model_name = "random-forest"
+accuracy = 0.94
+is_trained = True
+
+# 2. A list: ordered collection
+scores = [0.81, 0.94, 0.77]
+scores.append(0.88)                      # add to the end
+print("all scores:", scores)
+
+# 3. A dict: label -> value pairs (like a form)
+run = {"model": model_name, "auc": accuracy, "epochs": 10}
+print("run name:", run["model"])
+run["dataset"] = "customers-v1"          # add a new key
+
+# 4. A loop: do something for every item
+for i, s in enumerate(scores, start=1):
+    if s &gt;= 0.85:
+        print(f"run {i}: {s:.0%} — good ✅")
+    else:
+        print(f"run {i}: {s:.0%} — needs work")
+
+# 5. A function: reusable recipe
+def average(numbers):
+    return sum(numbers) / len(numbers)
+
+print("average:", round(average(scores), 3))</code></pre></div>
+
+  <h2>Step 2 — Run it</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal — from the project root</span></div><pre><code class="lang-bash">python src/basics.py</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint — you should see exactly:</b>
+  <div class="codebox"><div class="codebox-head"><span class="fname">expected output</span></div><pre><code class="lang-text">all scores: [0.81, 0.94, 0.77, 0.88]
+run name: random-forest
+run 1: 81% — needs work
+run 2: 94% — good ✅
+run 3: 77% — needs work
+run 4: 88% — good ✅
+average: 0.85</code></pre></div>
+  Different? Check that <code>enumerate</code> starts at 1 and the f-string uses <code>:.0%</code>.</div>
+
+  <h2>Step 3 — Create <code>src/best_model.py</code></h2>
+  <p><b>The task:</b> given a list of runs, find the best one by AUC and announce it. Try it yourself for
+  10 minutes first — then compare with this solution.</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/best_model.py</span></div><pre><code class="lang-python"># src/best_model.py — practice: dicts in a list + functions
+
+runs = [
+    {"name": "random-forest", "auc": 0.91},
+    {"name": "xgboost",       "auc": 0.94},
+    {"name": "logistic-reg",  "auc": 0.85},
+]
+
+def best_run(runs):
+    """Return the run dict with the highest 'auc'."""
+    winner = runs[0]                # start with the first candidate
+    for r in runs:
+        if r["auc"] &gt; winner["auc"]:
+            winner = r              # found a better one — remember it
+    return winner
+
+top = best_run(runs)
+print(f"Winner: {top['name']} with AUC {top['auc']}")</code></pre></div>
+  <p>Run <code>python src/best_model.py</code> — expected: <code>Winner: xgboost with AUC 0.94</code>.</p>
+
+  <div class="plain">🧠 <b>What's AUC?</b> A quality score for ranking models, from 0.5 (coin flip) to 1.0
+  (perfect). 0.9+ is very good. You'll log it for real in Lab 4.</div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> <code>No such file or directory</code> → you're not
+  in the project root; run <code>pwd</code> to check, <code>cd</code> back. <code>SyntaxError</code> → check
+  quotes and colons. <code>f"…{top['name']}…"</code> uses double quotes outside and single inside — nesting
+  the same quote type breaks the f-string.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> add a fourth run to the list and verify the winner updates;
+  change the loop to print only runs below 0.9.</div>
+</article>
+
+<!-- ============================== LAB 2 ============================== -->
+<article class="topic" id="lab-2" data-kw="lab train model dataset prepare random forest sklearn metrics save">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 2 — Train Your First Model</h1>
+  <p class="lead">Generate a realistic customer-churn dataset, train a RandomForest on it, and save the model
+  + metrics. This is the ML core that every later lab productionizes.</p>
+  <div class="lab-meta"><span>⏱ ~30 min</span><span>✅ Prereq: Lab 0</span><span>📁 You'll create: <code>src/prepare_data.py</code>, <code>src/train.py</code> → <code>data/customers.csv</code>, <code>models/model.pkl</code>, <code>metrics.json</code></span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> running two scripts produces a trained model on disk and printed
+  metrics with accuracy/AUC above 0.85.</div>
+
+  <div class="plain">🧠 <b>The plan:</b> "churn" = a customer leaving. We'll <i>invent</i> 2,000 fake customers
+  whose leaving depends on tenure, charges and support calls — then check the model can rediscover that hidden
+  pattern. Synthetic data means no downloads and it works offline.</div>
+
+  <h2>Step 1 — Create the dataset: <code>src/prepare_data.py</code></h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/prepare_data.py</span></div><pre><code class="lang-python"># src/prepare_data.py — create a synthetic churn dataset
+import numpy as np
+import pandas as pd
+
+rng = np.random.default_rng(42)      # seeded → the SAME "random" data every run
+n = 2000
+
+df = pd.DataFrame({
+    "tenure_months":   rng.integers(1, 72, n),        # how long the customer stayed
+    "monthly_charges": rng.uniform(20, 120, n).round(2),
+    "support_calls":   rng.integers(0, 9, n),         # complaints to support
+})
+
+# the hidden truth: more calls + short tenure + high price → more likely to churn
+score = (
+    0.03 * df["support_calls"]
+    + 0.02 * df["monthly_charges"]
+    - 0.015 * df["tenure_months"]
+)
+probability = 1 / (1 + np.exp(-score + 4))            # squish scores into 0..1
+df["churned"] = (rng.random(n) &lt; probability).astype(int)   # 0 = stayed, 1 = left
+
+df.to_csv("data/customers.csv", index=False)
+print(df.head())
+print("churn rate:", df["churned"].mean().round(3))</code></pre></div>
+  <p>Run it: <code>python src/prepare_data.py</code></p>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> a 5-row table prints, <code>churn rate</code> is roughly
+  0.2–0.4, and <code>data/customers.csv</code> now exists (check with <code>head -3 data/customers.csv</code>).
+  The <code>rng(42)</code> seed makes the file identical every run — reproducibility from day one.</div>
+
+  <h2>Step 2 — Train: <code>src/train.py</code></h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/train.py</span></div><pre><code class="lang-python"># src/train.py — load data, train, evaluate, save artifacts
+import json
+from pathlib import Path
+
+import joblib
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.model_selection import train_test_split
+
+N_ESTIMATORS = 200        # hyperparameter: how many trees in the forest
+
+# 1. Load
+df = pd.read_csv("data/customers.csv")
+FEATURES = ["tenure_months", "monthly_charges", "support_calls"]
+X, y = df[FEATURES], df["churned"]     # X = questions, y = right answers
+
+# 2. Split: grade the model on data it never saw (20% exam)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y   # stratify = keep churn ratio
+)
+
+# 3. Train
+model = RandomForestClassifier(n_estimators=N_ESTIMATORS, random_state=42)
+model.fit(X_train, y_train)
+
+# 4. Evaluate
+preds = model.predict(X_test)                 # hard 0/1 answers
+probs = model.predict_proba(X_test)[:, 1]     # soft probability of churn
+metrics = {
+    "model": "random-forest",
+    "n_estimators": N_ESTIMATORS,
+    "accuracy": round(accuracy_score(y_test, preds), 4),
+    "roc_auc": round(roc_auc_score(y_test, probs), 4),
+}
+print(json.dumps(metrics, indent=2))
+
+# 5. Save artifacts for later labs
+Path("models").mkdir(exist_ok=True)
+joblib.dump(model, "models/model.pkl")        # the trained model, serialized
+Path("metrics.json").write_text(json.dumps(metrics, indent=2))
+print("saved models/model.pkl and metrics.json")</code></pre></div>
+  <p>Run it: <code>python src/train.py</code></p>
+  <div class="checkpoint"><b>✅ Checkpoint — you should see something like:</b>
+  <div class="codebox"><div class="codebox-head"><span class="fname">expected output</span></div><pre><code class="lang-json">{
+  "model": "random-forest",
+  "n_estimators": 200,
+  "accuracy": 0.92,
+  "roc_auc": 0.96
+}
+saved models/model.pkl and metrics.json</code></pre></div>
+  Verify with <code>ls models data</code> — both files exist. Accuracy will vary slightly by library version;
+  that's exactly why we pin versions.</div>
+
+  <div class="plain">🧠 <b>What just happened:</b> <code>.pkl</code> ("pickle") is a serialized Python object —
+  the forest's 200 trees, frozen to disk. <code>metrics.json</code> is machine-readable evidence of how good it
+  is. Lab 6 loads the pickle into a web API; Lab 4 logs these numbers to MLflow instead of a printout.</div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> <code>FileNotFoundError: 'data/customers.csv'</code> →
+  run Step 1 first, and run from the project root. <code>ModuleNotFoundError</code> → your venv isn't active.
+  Inspect errors bottom-up, as taught in the Errors topic.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> change <code>N_ESTIMATORS</code> to 50 and re-run — did the
+  metrics move? That's an experiment… which is exactly what Lab 4 starts tracking properly.</div>
+</article>
+
+<!-- ============================== LAB 3 ============================== -->
+<article class="topic" id="lab-3" data-kw="lab git init commit branch merge github push ignore">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 3 — Version Control with Git</h1>
+  <p class="lead">Put the project under Git so every change is tracked and recoverable — and keep data, models
+  and the venv out of it.</p>
+  <div class="lab-meta"><span>⏱ ~25 min</span><span>✅ Prereq: Labs 0–2 (files to track)</span><span>📁 You'll create: <code>.gitignore</code>, a local git history (and optionally a GitHub repo)</span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> <code>git log --oneline</code> shows several clean commits, and
+  <code>git status</code> never lists <code>.venv/</code>, data or models.</div>
+
+  <h2>Step 1 — Start the repo &amp; ignore the right things</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">git init
+git status        # see what git notices — right now: everything</code></pre></div>
+  <p>Create a file named exactly <code>.gitignore</code> in the project root:</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">.gitignore</span></div><pre><code class="lang-text">.venv/
+data/
+models/
+mlruns/
+__pycache__/
+*.pkl
+*.csv
+.DS_Store
+.env</code></pre></div>
+  <div class="plain">🧠 <b>Why ignore these?</b> Git keeps every version of everything, forever. Big binaries
+  (data, models) would bloat it — they get DVC in Lab 5. <code>.venv/</code> is rebuilt from
+  <code>requirements.txt</code> in one command. Secrets (<code>.env</code>) must never be committed — ever.</div>
+
+  <h2>Step 2 — First commit</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">git add .
+git status        # .venv, data, models should NOT appear anymore ✅
+git commit -m "Initial commit: training pipeline and data prep"</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> the commit succeeds and the status output lists only real
+  source files (<code>src/…</code>, <code>.gitignore</code>, <code>requirements.txt</code>).</div>
+
+  <h2>Step 3 — Branch, change, merge (the everyday workflow)</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">git switch -c more-trees                 # create &amp; enter a branch
+# edit src/train.py: change N_ESTIMATORS = 200  →  300, save
+git diff                                 # review the change before committing
+git add src/train.py
+git commit -m "Try 300 trees"
+git switch main                          # back to main — file shows 200 again!
+git merge more-trees                     # bring the experiment in
+git log --oneline                        # your history so far</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> <code>git log --oneline</code> shows 3+ commits and
+  <code>src/train.py</code> on <code>main</code> now has 300. Notice you traveled through time with
+  <code>switch</code> — that's the save-game system working.</div>
+
+  <h2>Step 4 — (Optional) Push to GitHub</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash"># create an empty repo named churn-predictor on github.com first (no README)
+git remote add origin https://github.com/YOURNAME/churn-predictor.git
+git push -u origin main</code></pre></div>
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> GitHub doesn't accept account passwords — use a
+  <b>Personal Access Token</b> (github.com → Settings → Developer settings) or the <code>gh</code> CLI login.
+  "Repository not found" → check the URL and that the repo exists. Lab 8 needs this push.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> run <code>git log --oneline --graph --all</code> and find your
+  branch in the picture. Deliberately delete a file, then restore it with
+  <code>git restore &lt;file&gt;</code> — feel the safety net.</div>
+</article>
+
+<!-- ============================== LAB 4 ============================== -->
+<article class="topic" id="lab-4" data-kw="lab mlflow experiment tracking ui runs params metrics log">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 4 — Track Experiments (MLflow)</h1>
+  <p class="lead">Turn the printout from Lab 2 into self-recording experiment history: two tracked runs you can
+  compare in a real UI.</p>
+  <div class="lab-meta"><span>⏱ ~30 min</span><span>✅ Prereq: Lab 2 works</span><span>📁 You'll create: <code>src/train_tracked.py</code> and an <code>mlruns/</code> history</span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> two runs appear in the MLflow UI under the experiment
+  <code>churn-predictor</code>, with params and metrics you can compare side by side.</div>
+
+  <h2>Step 1 — Install</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">pip install mlflow
+pip freeze &gt; requirements.txt        # keep the list honest</code></pre></div>
+
+  <h2>Step 2 — Create <code>src/train_tracked.py</code></h2>
+  <p>Same training as Lab 2 — plus four MLflow lines (marked). This is deliberately small: tracking should
+  never dominate your training code.</p>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/train_tracked.py</span></div><pre><code class="lang-python"># src/train_tracked.py — same training as Lab 2, now logged to MLflow
+import json
+from pathlib import Path
+
+import mlflow
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.model_selection import train_test_split
+
+N_ESTIMATORS = 300
+
+mlflow.set_experiment("churn-predictor")          # runs grouped under this name
+
+with mlflow.start_run(run_name=f"rf-{N_ESTIMATORS}"):
+    mlflow.log_param("n_estimators", N_ESTIMATORS)   # the INPUTS of this run
+    mlflow.log_param("test_size", 0.2)
+
+    df = pd.read_csv("data/customers.csv")
+    FEATURES = ["tenure_months", "monthly_charges", "support_calls"]
+    X, y = df[FEATURES], df["churned"]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    model = RandomForestClassifier(n_estimators=N_ESTIMATORS, random_state=42)
+    model.fit(X_train, y_train)
+
+    preds = model.predict(X_test)
+    probs = model.predict_proba(X_test)[:, 1]
+    metrics = {
+        "accuracy": round(accuracy_score(y_test, preds), 4),
+        "roc_auc": round(roc_auc_score(y_test, probs), 4),
+    }
+    mlflow.log_metrics(metrics)                      # the OUTPUTS of this run
+
+    Path("metrics.json").write_text(json.dumps(metrics, indent=2))
+    mlflow.log_artifact("metrics.json")              # files too
+    mlflow.sklearn.log_model(model, "model")         # the model itself, versioned
+    print(json.dumps(metrics, indent=2))</code></pre></div>
+
+  <h2>Step 3 — Run it twice</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">python src/train_tracked.py
+# then edit N_ESTIMATORS 300 → 150, save, and:
+python src/train_tracked.py</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> each run prints its metrics and a <code>Run ID</code>, and a
+  new <code>mlruns/</code> folder appeared — that's the local tracking store.</div>
+
+  <h2>Step 4 — Open the UI and compare</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal — a SECOND terminal (venv active)</span></div><pre><code class="lang-bash">mlflow ui --port 5000
+# open http://localhost:5000 in your browser</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> the experiment <code>churn-predictor</code> shows both runs.
+  Tick both, hit <b>Compare</b>, and see 300 vs 150 trees side by side. Which won? That decision is now
+  backed by evidence, not memory. Stop the UI later with <b>Ctrl+C</b>.</div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> UI won't start → make sure the second terminal has
+  the venv active. Port busy → use <code>--port 5001</code>. Runs missing → check you ran the script from the
+  project root (that's where <code>mlruns/</code> lives).</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> add <code>max_depth</code> as a second parameter, run a 2×2 grid
+  (depth 4/8 × trees 150/300), and pick the winner in the UI.</div>
+</article>
+
+<!-- ============================== LAB 5 ============================== -->
+<article class="topic" id="lab-5" data-kw="lab dvc data versioning add push pull remote pointer">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 5 — Version Data (DVC)</h1>
+  <p class="lead">Tie exact dataset versions to git commits, and experience the "new teammate joins" moment:
+  one command to get all the data.</p>
+  <div class="lab-meta"><span>⏱ ~30 min</span><span>✅ Prereq: Lab 3 (git repo) and Lab 2 (dataset)</span><span>📁 You'll create: <code>.dvc/</code>, <code>data/customers.csv.dvc</code>, a local DVC remote</span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> deleting <code>data/customers.csv</code> and running
+  <code>dvc pull</code> restores it byte-for-byte — and two data versions exist in history.</div>
+
+  <h2>Step 1 — Initialize DVC</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">pip install dvc
+pip freeze &gt; requirements.txt
+dvc init          # creates .dvc/ — needs the git repo from Lab 3
+git status        # see the new .dvc files git wants to track</code></pre></div>
+
+  <h2>Step 2 — Hand the dataset to DVC</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">dvc add data/customers.csv
+git status        # notice: customers.csv is now IGNORED, customers.csv.dvc appeared
+git add data/customers.csv.dvc data/.gitignore .dvc/config
+git commit -m "Track dataset v1 with DVC"</code></pre></div>
+  <div class="plain">🧠 <b>What happened:</b> the real file moved into <code>.dvc/cache</code> (hashed by
+  content), and <code>customers.csv.dvc</code> is a tiny pointer: "the dataset with hash abc123…". Git stores
+  the bookmark; DVC stores the book.</div>
+
+  <h2>Step 3 — Set up a (local) remote and push</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">dvc remote add -d storage ../churn-dvcstore   # in real life: s3://… or gdrive://…
+dvc push                                      # upload cached data to the remote</code></pre></div>
+
+  <h2>Step 4 — The teammate moment 🎉</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">rm data/customers.csv        # ouch. (a new teammate simply never had it)
+ls data/                     # only the .dvc pointer remains
+dvc pull                     # fetch from the remote using the pointer
+head -2 data/customers.csv   # restored — byte-for-byte identical</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> the file is back. This exact flow is how CI machines and
+  colleagues get your data without any cloud setup magic.</div>
+
+  <h2>Step 5 — Version a dataset <i>change</i></h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash"># edit src/prepare_data.py: change n = 2000  →  5000, save
+python src/prepare_data.py               # regenerate (bigger) dataset
+dvc add data/customers.csv               # new hash → new version
+git add data/customers.csv.dvc
+git commit -m "Grow dataset to 5000 rows"
+dvc push
+
+git log --oneline                        # two data versions in history!
+# time travel back:
+git checkout HEAD~1 -- data/customers.csv.dvc   # point at the OLD version
+dvc checkout                                    # materialize the old bytes
+git checkout HEAD -- data/customers.csv.dvc     # and forward again
+dvc checkout</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> you moved the dataset backward and forward through history
+  using git (pointers) + DVC (bytes). Every commit now pins code <i>and</i> data — full reproducibility.</div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> <code>dvc pull</code> says "no files" → did you
+  <code>dvc push</code> from the machine that had the data? Remote path errors → the <code>../</code> folder
+  must be outside the repo. Remember: git moves <i>pointers</i>, <code>dvc</code> moves <i>bytes</i>.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> version the model too: <code>dvc add models/model.pkl</code> and
+  commit the pointer. Now a commit pins code, data <i>and</i> model.</div>
+</article>
+
+<!-- ============================== LAB 6 ============================== -->
+<article class="topic" id="lab-6" data-kw="lab fastapi uvicorn serve api predict health docs">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 6 — Serve the Model (FastAPI)</h1>
+  <p class="lead">Wrap the Lab 2 model in a web API and get predictions from your browser — the moment your
+  project becomes a <i>service</i>.</p>
+  <div class="lab-meta"><span>⏱ ~30 min</span><span>✅ Prereq: Lab 2 (<code>models/model.pkl</code> exists)</span><span>📁 You'll create: <code>src/main.py</code></span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> <code>/health</code> returns ok, and <code>/predict</code> returns a
+  churn probability for a customer you invent — tested from the browser docs page.</div>
+
+  <h2>Step 1 — Install</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">pip install "fastapi" "uvicorn[standard]"
+pip freeze &gt; requirements.txt</code></pre></div>
+
+  <h2>Step 2 — Create <code>src/main.py</code></h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/main.py</span></div><pre><code class="lang-python"># src/main.py — serve the churn model as an HTTP API
+from contextlib import asynccontextmanager
+
+import joblib
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+model = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load the model once at startup, serve requests, done."""
+    global model
+    model = joblib.load("models/model.pkl")
+    yield
+
+app = FastAPI(title="Churn Prediction API", lifespan=lifespan)
+
+# the request schema: FastAPI + Pydantic reject anything that doesn't match
+class Customer(BaseModel):
+    tenure_months: int
+    monthly_charges: float
+    support_calls: int
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+@app.post("/predict")
+def predict(c: Customer):
+    features = [[c.tenure_months, c.monthly_charges, c.support_calls]]
+    prob = float(model.predict_proba(features)[0][1])   # P(churn = 1)
+    return {"churn_probability": round(prob, 4)}</code></pre></div>
+
+  <h2>Step 3 — Start the server</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">uvicorn src.main:app --reload
+# src.main = file src/main.py, app = the FastAPI object inside it
+# --reload = restart automatically when you edit code (dev only)</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> the last line says
+  <code>Uvicorn running on http://127.0.0.1:8000</code>. Leave this terminal running.</div>
+
+  <h2>Step 4 — Test it (browser only, no curl needed)</h2>
+  <ol>
+    <li>Open <code>http://127.0.0.1:8000/health</code> → expect <code>{"status":"ok"}</code> ✅</li>
+    <li>Open <code>http://127.0.0.1:8000/docs</code> — FastAPI generated interactive docs from your type hints!</li>
+    <li>Expand <b>POST /predict</b> → <b>Try it out</b> → paste a risky customer:
+      <div class="codebox"><div class="codebox-head"><span class="fname">request body</span></div><pre><code class="lang-json">{
+  "tenure_months": 3,
+  "monthly_charges": 110.0,
+  "support_calls": 8
+}</code></pre></div>
+      Execute → expect a <b>high</b> churn probability (~0.9).</li>
+    <li>Now try a happy loyal customer: <code>{"tenure_months": 60, "monthly_charges": 25.0, "support_calls": 0}</code>
+      → a <b>low</b> probability. The model learned the hidden pattern from Lab 2!</li>
+  </ol>
+
+  <div class="plain">🧠 <b>Feel the guardrail:</b> send <code>"tenure_months": "banana"</code> — FastAPI
+  answers <code>422 Unprocessable Entity</code> with a precise explanation, and your model never saw the garbage.
+  That's Pydantic validation earning its keep.</div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> <code>Address already in use</code> → another app
+  owns port 8000; use <code>--port 8001</code>. <code>FileNotFoundError</code> for the pickle → train in Lab 2
+  first, and start uvicorn from the project root. Editing code but nothing changes? The <code>--reload</code>
+  watcher only works inside the project folder.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> add a <code>model_version</code> field to the response and return
+  <code>"2.0.0-lab"</code>; add a <code>/features</code> endpoint listing the model's features.</div>
+</article>
+
+<!-- ============================== LAB 7 ============================== -->
+<article class="topic" id="lab-7" data-kw="lab docker build run container image ship">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 7 — Ship It in Docker</h1>
+  <p class="lead">Pack the API from Lab 6 into a container and run it — with zero dependence on your venv,
+  your Python, or your machine.</p>
+  <div class="lab-meta"><span>⏱ ~30 min</span><span>✅ Prereq: Labs 2 &amp; 6; Docker Desktop installed &amp; running</span><span>📁 You'll create: <code>Dockerfile</code>, <code>.dockerignore</code></span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> a container serves the same API on port 8000 while your venv could be
+  deleted — proof the lunchbox is self-contained.</div>
+
+  <h2>Step 1 — Create the recipe files</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">.dockerignore</span></div><pre><code class="lang-text"># things the image does NOT need (smaller, faster builds)
+.venv/
+.git/
+data/
+mlruns/
+__pycache__/
+*.pyc
+# NOTE: models/ is deliberately NOT ignored —
+# the image copies the trained model inside itself (simplest for this lab)</code></pre></div>
+  <div class="codebox"><div class="codebox-head"><span class="fname">Dockerfile</span></div><pre><code class="lang-docker">FROM python:3.12-slim                # base image: Python 3.12, nothing extra
+
+WORKDIR /app                         # working folder inside the container
+
+COPY requirements.txt .              # deps first: this layer is cached,
+RUN pip install --no-cache-dir -r requirements.txt   # so code edits rebuild fast
+
+COPY src/ ./src/                     # the app code
+COPY models/ ./models/               # the trained model
+
+EXPOSE 8000
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# --host 0.0.0.0 = accept connections from outside the container, not just localhost</code></pre></div>
+
+  <h2>Step 2 — Build the image</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">docker build -t churn-api:v1 .
+docker image ls        # churn-api:v1 is now on your machine</code></pre></div>
+  <div class="plain">🧠 <b>Watch the build output:</b> each Dockerfile line is a <b>layer</b>. Edit
+  <code>src/main.py</code> and rebuild — layers up to <code>requirements.txt</code> are reused from cache;
+  only the copy steps re-run. That ordering trick is why pros put dependencies first.</div>
+
+  <h2>Step 3 — Run it</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">docker run --rm -p 8000:8000 --name churn-api churn-api:v1
+# --rm = clean up on stop;  -p host:container  = port mapping</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> open <code>http://127.0.0.1:8000/docs</code> — the same
+  interactive docs, but served from <i>inside the container</i>. Send a /predict request. This container
+  would run identically on any server.</div>
+
+  <h2>Step 4 — Look around, then stop</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal — a SECOND terminal</span></div><pre><code class="lang-bash">docker ps                        # the running container
+docker logs -f churn-api         # its logs (Ctrl+C to stop following)
+docker exec -it churn-api sh     # shell INSIDE the lunchbox — look around!
+docker stop churn-api            # stop it (--rm removes it automatically)</code></pre></div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> <code>Cannot connect to the Docker daemon</code> →
+  start Docker Desktop and wait for it to say "running". <code>port is already allocated</code> → your Lab 6
+  uvicorn still owns 8000; stop it (Ctrl+C) or map <code>-p 8001:8000</code>. Image huge? That's
+  <code>python:3.12-slim</code> doing its job — check with <code>docker image ls</code>.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> run a second container on port 8001 at the same time —
+  congratulations, you just scaled horizontally.</div>
+</article>
+
+<!-- ============================== LAB 8 ============================== -->
+<article class="topic" id="lab-8" data-kw="lab ci cd pytest ruff github actions workflow tests automate">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 8 — Automate with CI</h1>
+  <p class="lead">Write your first automated tests, then let a robot run them on every push — the CI habit
+  that separates toys from production projects.</p>
+  <div class="lab-meta"><span>⏱ ~35 min</span><span>✅ Prereq: Labs 3 &amp; 6 (git + the API). GitHub optional but recommended.</span><span>📁 You'll create: <code>src/validate.py</code>, <code>tests/test_validate.py</code>, <code>requirements-dev.txt</code>, <code>.github/workflows/ci.yml</code></span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> <code>python -m pytest</code> passes locally, and a green check ✓
+  appears on GitHub for your new workflow.</div>
+
+  <h2>Step 1 — Make something testable: <code>src/validate.py</code></h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/validate.py</span></div><pre><code class="lang-python"># src/validate.py — tiny checks a unit test can verify
+def validate_customer(tenure_months: int, monthly_charges: float,
+                      support_calls: int) -&gt; dict:
+    if tenure_months &lt; 0:
+        raise ValueError("tenure_months must be &gt;= 0")
+    if not 0 &lt; monthly_charges &lt; 1000:
+        raise ValueError("monthly_charges out of range")
+    if support_calls &lt; 0:
+        raise ValueError("support_calls must be &gt;= 0")
+    return {
+        "tenure_months": tenure_months,
+        "monthly_charges": monthly_charges,
+        "support_calls": support_calls,
+    }</code></pre></div>
+
+  <h2>Step 2 — Write the tests: <code>tests/test_validate.py</code></h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">tests/test_validate.py</span></div><pre><code class="lang-python">import pytest
+
+from src.validate import validate_customer
+
+
+def test_valid_customer_passes():
+    out = validate_customer(12, 59.9, 2)
+    assert out["tenure_months"] == 12
+    assert out["monthly_charges"] == 59.9
+
+
+def test_negative_tenure_is_rejected():
+    with pytest.raises(ValueError):
+        validate_customer(-1, 59.9, 2)
+
+
+def test_absurd_charges_are_rejected():
+    with pytest.raises(ValueError):
+        validate_customer(12, 9999.0, 2)</code></pre></div>
+  <p>Also create an empty file named <code>conftest.py</code> in the <b>project root</b> (empty is fine —
+  it helps <code>from src…</code> imports resolve when testing).</p>
+
+  <h2>Step 3 — Install test tools &amp; run locally</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">pip install pytest ruff
+pip freeze &gt; requirements-dev.txt        # dev tools tracked separately
+
+python -m pytest -q                      # the -m makes imports work from the root
+ruff check src tests</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> pytest prints <code>3 passed</code> and ruff prints
+  <code>All checks passed!</code>. (Ruff complains about an unused import or long line? Fix it — that's
+  the robot doing its job early.)</div>
+
+  <h2>Step 4 — Give the robot its instructions</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">.github/workflows/ci.yml</span></div><pre><code class="lang-yaml">name: ci
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: ruff check src tests</code></pre></div>
+
+  <h2>Step 5 — Push and watch</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">git add .
+git commit -m "Add validation, unit tests and CI workflow"
+git push</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> on github.com → your repo → <b>Actions</b> tab, the workflow
+  runs and turns green ✓ within a minute or two. That check is now a gate: nothing broken gets merged.</div>
+
+  <h2>Step 6 — Break it on purpose (important!)</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">temporary experiment</span></div><pre><code class="lang-python"># change the 9999 in test_absurd_charges_are_rejected to 500 (a VALID charge),
+# commit, push, and watch Actions go red ✗ — then revert and watch it go green.</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> red ✗ on GitHub, green ✓ after revert. You have now personally
+  witnessed CI catching a bug before a human ever could.</div>
+
+  <div class="troubleshoot"><b>🩹 If something breaks:</b> workflow file must be under exactly
+  <code>.github/workflows/</code>. <code>ModuleNotFoundError: src</code> in CI → make sure
+  <code>conftest.py</code> got committed and CI runs <code>python -m pytest</code> (with <code>-m</code>).
+  No GitHub account? The local Step 3 already <i>is</i> CI's core — the workflow just runs it on a clean machine.</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> add a test that <code>validate_customer(0, 50, 0)</code> succeeds,
+  and a fourth CI step that runs <code>python src/prepare_data.py</code> to prove data generation works on a
+  clean machine.</div>
+</article>
+
+<!-- ============================== LAB 9 ============================== -->
+<article class="topic" id="lab-9" data-kw="lab evidently drift report monitoring bonus">
+  <div class="crumb"></div>
+  <h1>🧪 Lab 9 (Bonus) — Drift Report</h1>
+  <p class="lead">Simulate six months of production drift and produce a real monitoring report — the concept
+  from the Monitoring topic, made visible.</p>
+  <div class="lab-meta"><span>⏱ ~20 min</span><span>✅ Prereq: Lab 2 (<code>data/customers.csv</code>)</span><span>📁 You'll create: <code>src/drift_report.py</code> → <code>drift_report.html</code></span></div>
+  <div class="lab-goal"><b>🎯 Goal:</b> an HTML report opens in your browser and flags drift on the feature
+  you deliberately changed.</div>
+
+  <h2>Step 1 — Install</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">pip install evidently
+pip freeze &gt; requirements.txt</code></pre></div>
+
+  <h2>Step 2 — Create <code>src/drift_report.py</code></h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">src/drift_report.py</span></div><pre><code class="lang-python"># src/drift_report.py — compare training data vs "today's" data
+import numpy as np
+import pandas as pd
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset
+
+train_df = pd.read_csv("data/customers.csv")      # the world the model learned
+
+# simulate live traffic after 6 months of change:
+# prices rose 35%, and low-complaint customers mostly left the platform
+live_df = train_df.copy()
+live_df["monthly_charges"] = live_df["monthly_charges"] * 1.35
+live_df = live_df[live_df["support_calls"] &gt; 2].reset_index(drop=True)
+
+report = Report(metrics=[DataDriftPreset()])
+report.run(reference_data=train_df, current_data=live_df)
+report.save_html("drift_report.html")
+print("done — open drift_report.html in your browser")</code></pre></div>
+
+  <h2>Step 3 — Run and read the report</h2>
+  <div class="codebox"><div class="codebox-head"><span class="fname">terminal</span></div><pre><code class="lang-bash">python src/drift_report.py
+open drift_report.html        # macOS    (Windows: start drift_report.html)</code></pre></div>
+  <div class="checkpoint"><b>✅ Checkpoint:</b> the report shows <b>drift detected</b> for
+  <code>monthly_charges</code> (you shifted it 35%) and likely for <code>support_calls</code>
+  (you filtered it). Column-level detail shows just how far each distribution moved.</div>
+
+  <div class="plain">🧠 <b>Connect the dots:</b> in production, <code>live_df</code> wouldn't be simulated —
+  it would be real requests logged by your Lab 6 API. A scheduled job (the Orchestration topic) builds this
+  comparison nightly, and drift alarms become retraining triggers. You've now touched every stage of the
+  MLOps lifecycle with your own hands. 🎓</div>
+
+  <div class="try"><b>🏋️ Extra credit:</b> drift only <code>tenure_months</code> instead — which columns does
+  the report flag now? Try multiplying by 1.05 vs 1.5 to feel the detection threshold.</div>
+</article>
+
+<!-- ============================== CHEATSHEET: PYTHON ============================== -->
+<article class="topic" id="cs-python" data-kw="python cheatsheet snippets reference quick syntax">
+  <div class="crumb"></div>
+  <h1>🐍 Python Cheatsheet</h1>
+  <p class="lead">Everyday Python at a glance. Every row has a copy button.</p>
+  <button class="print-btn" onclick="window.print()">🖨 Print this cheatsheet</button>
+
+  <div class="cs">
+    <div class="cs-row"><div class="cs-what">Swap two variables</div><code>a, b = b, a</code></div>
+    <div class="cs-row"><div class="cs-what">Slice items 1–3</div><code>xs[1:4]</code></div>
+    <div class="cs-row"><div class="cs-what">Last element</div><code>xs[-1]</code></div>
+    <div class="cs-row"><div class="cs-what">Reverse a list</div><code>xs[::-1]</code></div>
+    <div class="cs-row"><div class="cs-what">Deduplicate</div><code>list(set(xs))</code></div>
+    <div class="cs-row"><div class="cs-what">Sort with a key</div><code>sorted(models, key=lambda m: m["auc"], reverse=True)</code></div>
+    <div class="cs-row"><div class="cs-what">Loop with index</div><code>for i, v in enumerate(xs): ...</code></div>
+    <div class="cs-row"><div class="cs-what">Loop two lists at once</div><code>for a, b in zip(xs, ys): ...</code></div>
+    <div class="cs-row"><div class="cs-what">Unpack first + rest</div><code>first, *rest = xs</code></div>
+    <div class="cs-row"><div class="cs-what">Dict with default</div><code>cfg.get("epochs", 10)</code></div>
+    <div class="cs-row"><div class="cs-what">Group with defaultdict</div><code>from collections import defaultdict; d = defaultdict(list)</code></div>
+    <div class="cs-row"><div class="cs-what">Count &amp; top-k</div><code>from collections import Counter; Counter(words).most_common(3)</code></div>
+    <div class="cs-row"><div class="cs-what">Join / split strings</div><code>", ".join(names)   |   "a,b".split(",")</code></div>
+    <div class="cs-row"><div class="cs-what">Percent formatting</div><code>f"{acc:.2%}"        # 0.9412 -&gt; '94.12%'</code></div>
+    <div class="cs-row"><div class="cs-what">Ternary</div><code>label = "spam" if p &gt; 0.5 else "ham"</code></div>
+    <div class="cs-row"><div class="cs-what">Handle an error</div><code>try: ... except ValueError as e: ...</code></div>
+    <div class="cs-row"><div class="cs-what">Type check</div><code>isinstance(x, (int, float))</code></div>
+    <div class="cs-row"><div class="cs-what">Read / write a file</div><code>Path("f.txt").read_text()  |  Path("o.txt").write_text("hi")</code></div>
+  </div>
+</article>
+
+<!-- ============================== CHEATSHEET: ENV ============================== -->
+<article class="topic" id="cs-env" data-kw="pip venv conda cheatsheet environment dependencies commands">
+  <div class="crumb"></div>
+  <h1>📦 pip · venv · conda Cheatsheet</h1>
+  <p class="lead">Environment and dependency commands you'll type weekly.</p>
+  <button class="print-btn" onclick="window.print()">🖨 Print this cheatsheet</button>
+
+  <div class="cs">
+    <div class="cs-group">venv</div>
+    <div class="cs-row"><div class="cs-what">Create an environment</div><code>python3 -m venv .venv</code></div>
+    <div class="cs-row"><div class="cs-what">Activate (macOS / Linux)</div><code>source .venv/bin/activate</code></div>
+    <div class="cs-row"><div class="cs-what">Activate (Windows)</div><code>.venv\Scripts\activate</code></div>
+    <div class="cs-row"><div class="cs-what">Deactivate</div><code>deactivate</code></div>
+    <div class="cs-group">pip</div>
+    <div class="cs-row"><div class="cs-what">Install a package</div><code>pip install scikit-learn==1.5.2</code></div>
+    <div class="cs-row"><div class="cs-what">Install from a file</div><code>pip install -r requirements.txt</code></div>
+    <div class="cs-row"><div class="cs-what">Freeze versions</div><code>pip freeze &gt; requirements.txt</code></div>
+    <div class="cs-row"><div class="cs-what">Show package info</div><code>pip show pandas</code></div>
+    <div class="cs-row"><div class="cs-what">List outdated</div><code>pip list --outdated</code></div>
+    <div class="cs-row"><div class="cs-what">Uninstall</div><code>pip uninstall pandas</code></div>
+    <div class="cs-group">conda</div>
+    <div class="cs-row"><div class="cs-what">Create env with Python</div><code>conda create -n mlops python=3.12</code></div>
+    <div class="cs-row"><div class="cs-what">Activate / deactivate</div><code>conda activate mlops   |   conda deactivate</code></div>
+    <div class="cs-row"><div class="cs-what">Install packages</div><code>conda install pandas scikit-learn</code></div>
+    <div class="cs-row"><div class="cs-what">List environments</div><code>conda env list</code></div>
+    <div class="cs-row"><div class="cs-what">Export environment</div><code>conda env export &gt; environment.yml</code></div>
+    <div class="cs-row"><div class="cs-what">Remove an environment</div><code>conda env remove -n mlops</code></div>
+  </div>
+</article>
+
+<!-- ============================== CHEATSHEET: GIT ============================== -->
+<article class="topic" id="cs-git" data-kw="git cheatsheet commands version control branch merge rebase stash">
+  <div class="crumb"></div>
+  <h1>🌿 Git Cheatsheet</h1>
+  <p class="lead">The commands that cover 95% of daily git use.</p>
+  <button class="print-btn" onclick="window.print()">🖨 Print this cheatsheet</button>
+
+  <div class="cs">
+    <div class="cs-row"><div class="cs-what">Clone a repo</div><code>git clone &lt;url&gt;</code></div>
+    <div class="cs-row"><div class="cs-what">What changed?</div><code>git status</code></div>
+    <div class="cs-row"><div class="cs-what">Stage interactively</div><code>git add -p</code></div>
+    <div class="cs-row"><div class="cs-what">Commit</div><code>git commit -m "Add feature"</code></div>
+    <div class="cs-row"><div class="cs-what">Fix the last commit</div><code>git commit --amend</code></div>
+    <div class="cs-row"><div class="cs-what">New branch</div><code>git switch -c feature/x</code></div>
+    <div class="cs-row"><div class="cs-what">Merge a branch</div><code>git merge feature/x</code></div>
+    <div class="cs-row"><div class="cs-what">Update branch onto main</div><code>git rebase main</code></div>
+    <div class="cs-row"><div class="cs-what">Compact history</div><code>git log --oneline --graph --all</code></div>
+    <div class="cs-row"><div class="cs-what">Diff against main</div><code>git diff main --stat</code></div>
+    <div class="cs-row"><div class="cs-what">Park / resume work</div><code>git stash   |   git stash pop</code></div>
+    <div class="cs-row"><div class="cs-what">Discard local changes</div><code>git restore file.py</code></div>
+    <div class="cs-row"><div class="cs-what">Undo last commit, keep changes</div><code>git reset --soft HEAD~1</code></div>
+    <div class="cs-row"><div class="cs-what">Tag a release</div><code>git tag model-v1.2.0 &amp;&amp; git push --tags</code></div>
+    <div class="cs-row"><div class="cs-what">List remotes</div><code>git remote -v</code></div>
+  </div>
+</article>
+
+<!-- ============================== CHEATSHEET: DOCKER ============================== -->
+<article class="topic" id="cs-docker" data-kw="docker cheatsheet commands container image compose build run">
+  <div class="crumb"></div>
+  <h1>🐳 Docker Cheatsheet</h1>
+  <p class="lead">Build, run and debug containers for ML services.</p>
+  <button class="print-btn" onclick="window.print()">🖨 Print this cheatsheet</button>
+
+  <div class="cs">
+    <div class="cs-row"><div class="cs-what">Build an image</div><code>docker build -t app:v1 .</code></div>
+    <div class="cs-row"><div class="cs-what">Run detached with a port</div><code>docker run -d -p 8000:8000 --name api app:v1</code></div>
+    <div class="cs-row"><div class="cs-what">Run a throwaway shell</div><code>docker run --rm -it app:v1 bash</code></div>
+    <div class="cs-row"><div class="cs-what">List containers</div><code>docker ps -a</code></div>
+    <div class="cs-row"><div class="cs-what">Follow logs</div><code>docker logs -f api</code></div>
+    <div class="cs-row"><div class="cs-what">Shell into a container</div><code>docker exec -it api bash</code></div>
+    <div class="cs-row"><div class="cs-what">Stop &amp; remove</div><code>docker stop api &amp;&amp; docker rm api</code></div>
+    <div class="cs-row"><div class="cs-what">List images</div><code>docker image ls</code></div>
+    <div class="cs-row"><div class="cs-what">Push to a registry</div><code>docker push registry.example.com/app:v1</code></div>
+    <div class="cs-row"><div class="cs-what">Copy a file out</div><code>docker cp api:/app/out.json .</code></div>
+    <div class="cs-row"><div class="cs-what">Compose up (background)</div><code>docker compose up -d</code></div>
+    <div class="cs-row"><div class="cs-what">Clean everything unused</div><code>docker system prune -af</code></div>
+  </div>
+</article>
+
+<!-- ============================== CHEATSHEET: MLFLOW ============================== -->
+<article class="topic" id="cs-mlflow" data-kw="mlflow cheatsheet tracking api cli registry runs metrics">
+  <div class="crumb"></div>
+  <h1>📈 MLflow Cheatsheet</h1>
+  <p class="lead">CLI commands and the Python API for tracking experiments.</p>
+  <button class="print-btn" onclick="window.print()">🖨 Print this cheatsheet</button>
+
+  <div class="cs">
+    <div class="cs-group">CLI</div>
+    <div class="cs-row"><div class="cs-what">Launch the tracking UI</div><code>mlflow ui --port 5000</code></div>
+    <div class="cs-row"><div class="cs-what">Run an MLproject</div><code>mlflow run . --experiment-name exp1</code></div>
+    <div class="cs-group">Python API</div>
+    <div class="cs-row"><div class="cs-what">Point at a tracking server</div><code>mlflow.set_tracking_uri("http://localhost:5000")</code></div>
+    <div class="cs-row"><div class="cs-what">Select an experiment</div><code>mlflow.set_experiment("churn")</code></div>
+    <div class="cs-row"><div class="cs-what">Start a run</div><code>with mlflow.start_run(run_name="baseline") as run:</code></div>
+    <div class="cs-row"><div class="cs-what">Log parameters</div><code>mlflow.log_params({"n_estimators": 300})</code></div>
+    <div class="cs-row"><div class="cs-what">Log metrics</div><code>mlflow.log_metrics({"auc": 0.94, "acc": 0.91})</code></div>
+    <div class="cs-row"><div class="cs-what">Log a file artifact</div><code>mlflow.log_artifact("confusion_matrix.png")</code></div>
+    <div class="cs-row"><div class="cs-what">Log a sklearn model</div><code>mlflow.sklearn.log_model(model, "model")</code></div>
+    <div class="cs-row"><div class="cs-what">Register the model</div><code>mlflow.register_model(f"runs:/{run.info.run_id}/model", "churn")</code></div>
+    <div class="cs-row"><div class="cs-what">Load production model</div><code>mlflow.sklearn.load_model("models:/churn/Production")</code></div>
+    <div class="cs-row"><div class="cs-what">Search runs</div><code>mlflow.search_runs(experiment_ids=["1"], order_by=["metrics.auc DESC"])</code></div>
+  </div>
+</article>
+
+<!-- ============================== CHEATSHEET: PANDAS/SKLEARN ============================== -->
+<article class="topic" id="cs-sklearn" data-kw="pandas scikit-learn cheatsheet dataframe train test split metrics joblib">
+  <div class="crumb"></div>
+  <h1>🐼 pandas · scikit-learn Cheatsheet</h1>
+  <p class="lead">The data-wrangling and modeling calls used in almost every project.</p>
+  <button class="print-btn" onclick="window.print()">🖨 Print this cheatsheet</button>
+
+  <div class="cs">
+    <div class="cs-group">pandas</div>
+    <div class="cs-row"><div class="cs-what">Load CSV</div><code>df = pd.read_csv("train.csv")</code></div>
+    <div class="cs-row"><div class="cs-what">Peek &amp; inspect</div><code>df.head(); df.shape; df.dtypes; df.describe()</code></div>
+    <div class="cs-row"><div class="cs-what">Missing values</div><code>df.isnull().sum()</code></div>
+    <div class="cs-row"><div class="cs-what">Category frequencies</div><code>df["city"].value_counts(normalize=True)</code></div>
+    <div class="cs-row"><div class="cs-what">Group &amp; aggregate</div><code>df.groupby("city")["price"].agg(["mean", "count"])</code></div>
+    <div class="cs-row"><div class="cs-what">Filter &amp; assign</div><code>df.loc[df["price"] &gt; 100, "tier"] = "premium"</code></div>
+    <div class="cs-row"><div class="cs-what">New column</div><code>df["log_price"] = np.log1p(df["price"])</code></div>
+    <div class="cs-row"><div class="cs-what">One-hot encode</div><code>pd.get_dummies(df, columns=["city"])</code></div>
+    <div class="cs-row"><div class="cs-what">Join tables</div><code>df.merge(other, on="id", how="left")</code></div>
+    <div class="cs-row"><div class="cs-what">Clean up</div><code>df = df.drop_duplicates().dropna(subset=["target"])</code></div>
+    <div class="cs-group">scikit-learn</div>
+    <div class="cs-row"><div class="cs-what">Split (stratified)</div><code>X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)</code></div>
+    <div class="cs-row"><div class="cs-what">Fit a model</div><code>model = RandomForestClassifier(200).fit(X_tr, y_tr)</code></div>
+    <div class="cs-row"><div class="cs-what">Predict &amp; score</div><code>preds = model.predict(X_te); model.score(X_te, y_te)</code></div>
+    <div class="cs-row"><div class="cs-what">Full report</div><code>print(classification_report(y_te, preds))</code></div>
+    <div class="cs-row"><div class="cs-what">Cross-validation</div><code>cross_val_score(model, X, y, cv=5).mean()</code></div>
+    <div class="cs-row"><div class="cs-what">Save / load model</div><code>joblib.dump(model, "model.pkl")  |  joblib.load("model.pkl")</code></div>
+  </div>
+</article>
+
+<!-- ============================== CHEATSHEET: SHELL ============================== -->
+<article class="topic" id="cs-linux" data-kw="shell bash terminal cheatsheet linux grep find curl logs gpu nvidia">
+  <div class="crumb"></div>
+  <h1>⌨️ Shell &amp; Utils Cheatsheet</h1>
+  <p class="lead">Terminal moves that pay off daily when running experiments and services.</p>
+  <button class="print-btn" onclick="window.print()">🖨 Print this cheatsheet</button>
+
+  <div class="cs">
+    <div class="cs-row"><div class="cs-what">List with sizes</div><code>ls -lah</code></div>
+    <div class="cs-row"><div class="cs-what">Nested directories</div><code>mkdir -p data/raw data/processed</code></div>
+    <div class="cs-row"><div class="cs-what">Copy / move / delete</div><code>cp -r models/ backup/  |  mv old.py new.py  |  rm -rf old_run/</code></div>
+    <div class="cs-row"><div class="cs-what">Search inside files</div><code>grep -rn "learning_rate" src/</code></div>
+    <div class="cs-row"><div class="cs-what">Find big files</div><code>find . -name "*.csv" -size +100M</code></div>
+    <div class="cs-row"><div class="cs-what">Disk usage of a folder</div><code>du -sh data/</code></div>
+    <div class="cs-row"><div class="cs-what">Peek at a file</div><code>head -5 file.csv  |  tail -f train.log</code></div>
+    <div class="cs-row"><div class="cs-what">Count rows</div><code>wc -l file.csv</code></div>
+    <div class="cs-row"><div class="cs-what">Test an API endpoint</div><code>curl -s localhost:8000/health | jq</code></div>
+    <div class="cs-row"><div class="cs-what">Archive a dataset</div><code>tar -czf backup.tar.gz data/</code></div>
+    <div class="cs-row"><div class="cs-what">Make a script executable</div><code>chmod +x run.sh</code></div>
+    <div class="cs-row"><div class="cs-what">Find a running process</div><code>ps aux | grep python</code></div>
+    <div class="cs-row"><div class="cs-what">Kill a process</div><code>kill -9 &lt;pid&gt;</code></div>
+    <div class="cs-row"><div class="cs-what">GPU status (live)</div><code>watch -n 5 nvidia-smi</code></div>
+    <div class="cs-row"><div class="cs-what">Repeat a recent command</div><code>history | tail -20</code></div>
+  </div>
+</article>
+
+<!-- ============================== FOOTER NAV ============================== -->
+<footer class="topic-foot" id="topicFoot">
+  <button id="prevBtn" class="foot-btn">← Previous<span id="prevTitle"></span></button>
+  <button id="doneBtn" class="done-btn">✓ Mark complete</button>
+  <button id="nextBtn" class="foot-btn">Next →<span id="nextTitle"></span></button>
+</footer>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

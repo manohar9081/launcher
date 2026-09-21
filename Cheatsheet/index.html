@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevOps Cheatsheets</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<style>
+  :root { --accent: #4dd0e1; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+         background:#0d1117; color:#c9d1d9; }
+  a { color: var(--accent); }
+  header { position:sticky; top:0; z-index:10; background:rgba(13,17,23,.88); backdrop-filter:blur(8px);
+           border-bottom:1px solid #21262d; }
+  .wrap { max-width:980px; margin:0 auto; padding:0 20px; }
+  h1 { margin:0; padding:16px 0 0; font-size:20px; color:#f0f6fc; letter-spacing:.01em; }
+  h1 .dot { color:var(--accent); }
+  .controls { display:flex; gap:10px; margin:12px 0 10px; flex-wrap:wrap; }
+  select, input[type="search"] { background:#161b22; border:1px solid #30363d; color:#e6edf3;
+           padding:9px 12px; border-radius:8px; font-size:14px; }
+  select { min-width:250px; cursor:pointer; }
+  #search { flex:1; min-width:180px; }
+  select:focus, #search:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(255,255,255,.06); }
+  .blurb { margin:4px 0 0; color:#8b949e; font-size:13.5px; }
+  .meta { margin:8px 0 16px; color:#6e7681; font-size:12.5px; }
+  .notes { border-left:3px solid var(--accent); background:rgba(255,255,255,.03); padding:10px 14px;
+           border-radius:0 8px 8px 0; font-size:13px; color:#adbac7; margin:0 0 14px; }
+  .notes ul { margin:4px 0; padding-left:18px; }
+  .notes li { margin:4px 0; }
+  .card { background:#161b22; border:1px solid #21262d; border-radius:12px; padding:16px 20px 10px; margin:14px 0; }
+  .card h2 { margin:0 0 2px; font-size:16px; color:var(--accent); }
+  .intro { color:#8b949e; font-size:12.5px; margin:2px 0 8px; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th { text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:#8b949e;
+       padding:6px 10px; border-bottom:1px solid #30363d; }
+  td { padding:7px 10px; border-bottom:1px solid #21262d; vertical-align:top; line-height:1.5; }
+  tr:last-child td { border-bottom:none; }
+  td.k { width:42%; }
+  td.k code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; font-size:12px;
+       background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:2px 7px; display:inline-block;
+       margin:1px 2px 1px 0; color:#79c0ff; overflow-wrap:anywhere; }
+  pre { background:#0a0d12; border:1px solid #21262d; border-radius:8px; padding:12px 14px; overflow-x:auto;
+        font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; color:#c9d1d9;
+        line-height:1.55; margin:10px 0; }
+  mark { background:#e3b341; color:#1b1f24; border-radius:3px; padding:0 2px; }
+  .empty { padding:48px 20px; text-align:center; color:#8b949e; font-size:14px; }
+  footer { text-align:center; color:#484f58; font-size:12px; padding:28px 20px 40px; }
+  @media (max-width:640px){ td.k{width:48%;} .controls{flex-direction:column;} select{min-width:0;} }
+  @media print {
+    body{background:#fff;color:#111;} header{position:static;background:#fff;}
+    .controls,.meta{display:none;} .card{border-color:#ddd;background:#fff;break-inside:avoid;}
+    td.k code{background:#f6f8fa;border-color:#ddd;color:#0550ae;} th,td{border-color:#ddd;color:#111;}
+    .card h2{color:#0550ae;} pre{background:#f6f8fa;color:#111;border-color:#ddd;}
+    .notes{background:#f6f8fa;color:#333;border-color:#0550ae;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>📖 DevOps Cheatsheets <span class="dot">—</span> macOS &amp; Linux</h1>
+    <div class="controls">
+      <select id="sheet-select" aria-label="Choose a cheatsheet"></select>
+      <input id="search" type="search" placeholder='Search this sheet…  ( press / )' autocomplete="off">
+    </div>
+    <p class="blurb" id="blurb"></p>
+    <p class="meta" id="meta"></p>
+  </div>
+</header>
+<main class="wrap" id="content"><noscript>This page needs JavaScript enabled.</noscript></main>
+<footer>Single-file page · works offline · print-friendly (⌘P / Ctrl+P)</footer>
+
+<script>
+"use strict";
+
+/* ============ DATA — add new sheets here ============ */
+const SHEETS = [
+
+/* ---------------- TERMINAL ---------------- */
+{
+  id: "terminal", group: "Editor & Terminal", icon: "⌨️", label: "Terminal (bash / zsh)", accent: "#4dd0e1",
+  blurb: "Shell keys for macOS & Linux — line editing, history, jobs, the less pager, and everyday commands.",
+  notes: [
+    "macOS defaults to zsh, Linux usually bash — the shortcuts below work in both (emacs bindings).",
+    "On a Mac, “Alt” = Option key. Terminal.app: Settings → Profiles → Keyboard → “Use Option as Meta key”. iTerm2: Profiles → Keys → Option key = “Esc+”.",
+    "If your terminal ever freezes while typing, you hit Ctrl+s — Ctrl+q unfreezes it."
+  ],
+  sections: [
+    { title: "Line editing", intro: "Works at any shell prompt.",
+      rows: [
+        ["Ctrl+a / Ctrl+e", "Jump to start / end of line"],
+        ["Ctrl+b / Ctrl+f", "Move back / forward one char (= ← →)"],
+        ["Alt+b / Alt+f", "Jump back / forward one word"],
+        ["Ctrl+← / Ctrl+→", "Word jump on Linux terminals; on Mac use Alt+b / Alt+f"],
+        ["Backspace / Ctrl+h", "Delete char before cursor"],
+        ["Ctrl+d", "Delete char under cursor — on an empty line it exits the shell"],
+        ["Ctrl+w", "Delete from cursor back to start of word"],
+        ["Alt+d", "Delete from cursor forward to end of word"],
+        ["Ctrl+u", "Delete from cursor to start of line"],
+        ["Ctrl+k", "Delete from cursor to end of line"],
+        ["Ctrl+y", "Paste back the last thing deleted above"],
+        ["Alt+y", "Cycle through earlier deleted text (after Ctrl+y)"],
+        ["Ctrl+t", "Swap the char under cursor with the previous one (fix typos)"],
+        ["Alt+t", "Swap current word with the previous one"],
+        ["Alt+u / Alt+l", "Uppercase / lowercase from cursor to end of word"],
+        ["Ctrl+_", "Undo last edit"],
+        ["Ctrl+l", "Clear the screen (keeps scrollback)"],
+        ["Ctrl+x Ctrl+e", "Edit the current command line in your $EDITOR — great for long commands"]
+      ]},
+    { title: "History & completion",
+      rows: [
+        ["Ctrl+p / Ctrl+n", "Previous / next command (= ↑ ↓)"],
+        ["Ctrl+r", "Reverse search history — type to find, Ctrl+r again for next match, Esc or → to keep it"],
+        ["Ctrl+o", "Accept line and fetch the next history line (step through a sequence)"],
+        ["Alt+.", "Insert the last argument of the previous command (repeat to cycle)"],
+        ["Tab", "Autocomplete command / file / path — press twice to list options"],
+        ["Ctrl+g", "Abort a search / cancel the line edit"],
+        ["history | grep ssh", "Find old commands by keyword"]
+      ]},
+    { title: "History expansion — type these directly",
+      rows: [
+        ["sudo !!", "Re-run the last command with sudo (the classic)"],
+        ["!!", "The entire previous command"],
+        ["!$", "Last argument of previous command — mkdir /long/path then: cd !$"],
+        ["!*", "All arguments of the previous command"],
+        ["!ls", "Run the most recent command that started with ls"],
+        ["!42", "Run command #42 from history"],
+        ["^old^new", "Re-run last command replacing old with new (fix one typo)"]
+      ]},
+    { title: "Job & process control",
+      rows: [
+        ["Ctrl+c", "Kill the foreground process"],
+        ["Ctrl+z", "Suspend the foreground process — fg resumes, bg keeps it running in background"],
+        ["Ctrl+d", "Send EOF — exits the shell, ends cat / python / ssh sessions"],
+        ["Ctrl+\\", "Force-quit a process that ignores Ctrl+c (SIGQUIT)"],
+        ["Ctrl+s / Ctrl+q", "Freeze / unfreeze terminal output (XOFF/XON)"],
+        ["Ctrl+z then bg then disown", "Leave a job running after closing the terminal (or start with nohup cmd &)"]
+      ]},
+    { title: "less — the pager (what man uses)",
+      rows: [
+        ["Space / b", "Next / previous page"],
+        ["j / k  or  ↑ / ↓", "Scroll one line"],
+        ["d / u", "Half page down / up"],
+        ["g / G", "Top / bottom of document"],
+        ["/text then n / N", "Search forward; next / previous match"],
+        ["?text", "Search backwards"],
+        ["-S", "Toggle line wrapping (see long lines)"],
+        ["F", "Follow mode (like tail -f); Ctrl+c stops following"],
+        ["h / q", "Help / quit"]
+      ]},
+    { title: "Files & navigation",
+      rows: [
+        ["pwd", "Print working directory"],
+        ["ls -lah", "List: long format, hidden files, human-readable sizes"],
+        ["cd -", "Go back to the previous directory"],
+        ["cd ~ / cd /", "Home directory / filesystem root"],
+        ["mkdir -p a/b/c", "Create nested directories"],
+        ["cp -r src dst / mv a b", "Copy recursively / move or rename"],
+        ["rm -i file / rm -r dir", "Remove file (confirm) / remove directory — no trash bin!"],
+        ["ln -s target link", "Create a symbolic link"],
+        ["tree -L 2", "Directory tree two levels deep"],
+        ["find . -name '*.py' -not -path '*/node_modules/*'", "Find files by name, excluding a folder"],
+        ["find . -name '*.log' -mtime +7 -delete", "Delete logs older than 7 days"]
+      ]},
+    { title: "Viewing & searching",
+      rows: [
+        ["cat file", "Print whole file"],
+        ["head -n 20 file / tail -n 20 file", "First / last 20 lines"],
+        ["tail -f app.log", "Follow a log as it grows"],
+        ["wc -l file", "Count lines"],
+        ["grep -rn 'text' .", "Search recursively, show file:line"],
+        ["grep -i pattern / grep -v pattern", "Ignore case / lines WITHOUT the pattern"],
+        ["grep -rn 'TODO' --include='*.py'", "Search only Python files"],
+        ["du -sh * | sort -h", "Sizes of items here, sorted"],
+        ["df -h", "Disk space"]
+      ]},
+    { title: "Pipes & redirection",
+      rows: [
+        ["cmd1 | cmd2", "Pipe stdout of cmd1 into cmd2"],
+        ["cmd > file / cmd >> file", "Redirect stdout — overwrite / append"],
+        ["cmd 2>err.log", "Redirect stderr"],
+        ["cmd > out.log 2>&1", "Capture stdout AND stderr to one file"],
+        ["cmd1 | tee out.log | cmd2", "Save mid-pipe output to a file AND pass it on"],
+        ["cmd1 | xargs cmd2", "Turn output lines into arguments: find . -name '*.tmp' | xargs rm"]
+      ]},
+    { title: "Processes & SSH",
+      rows: [
+        ["ps aux | grep nginx", "Find a process"],
+        ["top / htop", "Live process monitor"],
+        ["kill 1234 / kill -9 1234", "Terminate politely / force-kill PID 1234"],
+        ["pkill -f 'python script'", "Kill by name or pattern"],
+        ["jobs / fg %1 / bg %1", "List / foreground / background your suspended jobs"],
+        ["nohup longjob &", "Run detached — survives terminal close"],
+        ["ssh user@host", "Remote shell; add -L 8080:localhost:80 to forward a port"],
+        ["ssh-keygen -t ed25519", "Create a key — ssh-copy-id user@host installs it"],
+        ["scp file user@host:/path", "Copy over SSH"],
+        ["rsync -avz --progress src/ user@host:dst/", "Sync folders — resumable and efficient"]
+      ]},
+    { title: "Help & safety",
+      rows: [
+        ["man ls", "Manual for any command — / searches it, q quits"],
+        ["ls --help", "Quick usage dump"],
+        ["which python", "Where a command lives"],
+        ["alias ll='ls -lah'", "Shorten a command — add to ~/.zshrc or ~/.bashrc to persist"],
+        ["chmod +x script.sh", "Make executable (chmod 755 = owner rwx, others r-x)"],
+        ["tar -xzf file.tar.gz / tar -czf out.tar.gz dir/", "Extract / create an archive"],
+        ["source ~/.zshrc", "Re-read config after editing (or ~/.bashrc)"]
+      ]},
+    { title: "Mac vs Linux — key differences",
+      rows: [
+        ["Default shell", "macOS: zsh (since Catalina) · Linux: bash usually"],
+        ["Copy / paste", "macOS: Cmd+C / Cmd+V · Linux: Ctrl+Shift+C / Ctrl+Shift+V"],
+        ["Clear screen + scrollback", "macOS: Cmd+K · Linux: Ctrl+L keeps scrollback"],
+        ["New tab / window", "macOS: Cmd+T / Cmd+N · Linux: Ctrl+Shift+T / Ctrl+Shift+N (GNOME Terminal)"],
+        ["Home / End", "macOS: Fn+← / Fn+→ (or Ctrl+a / Ctrl+e) · Linux: Home / End keys"],
+        ["Page up / down", "macOS: Fn+↑ / Fn+↓ · Linux: PgUp / PgDn"],
+        ["Open file in GUI", "macOS: open file.pdf · Linux: xdg-open file.pdf"],
+        ["Clipboard commands", "macOS: pbcopy / pbpaste · Linux: xclip -sel clip / xsel -b (X11), wl-copy / wl-paste (Wayland)"],
+        ["Install software", "macOS: brew install htop · Linux: sudo apt install htop (Debian/Ubuntu), sudo dnf install htop (Fedora)"],
+        ["List open ports", "macOS: lsof -i :3000 · Linux: ss -tulpn or lsof -i :3000"],
+        ["Filesystem", "macOS: usually case-insensitive (FOO.txt = foo.txt) · Linux: case-sensitive — different files"]
+      ]},
+    { title: "Shell config starter",
+      rows: [[ "Edit ~/.zshrc on macOS, ~/.bashrc on Linux, then source it", "See block below" ]],
+      code:
+"# ~/.zshrc (macOS) or ~/.bashrc (Linux)\n" +
+"alias rm='rm -i'            # ask before deleting\n" +
+"alias cp='cp -i'            # ask before overwriting\n" +
+"alias ll='ls -lah'\n" +
+"alias ..='cd ..'\n" +
+"alias gs='git status'\n" +
+"export HISTSIZE=100000      # huge history\n" +
+"export HISTCONTROL=ignoredups   # bash: skip duplicate commands"
+    }
+  ]
+},
+
+/* ---------------- VIM ---------------- */
+{
+  id: "vim", group: "Editor & Terminal", icon: "✍️", label: "Vim / vi", accent: "#7ee787",
+  blurb: "Same keys on macOS and Linux. vi on modern systems is vim. Golden rule: live in Normal mode, dip into Insert only to type.",
+  notes: [
+    "Run vimtutor in any terminal (both OSes) — a 30-minute built-in interactive tutorial.",
+    "Pattern to remember: operator + motion = action. d, c, y combine with any movement (w, $, G, /search…)."
+  ],
+  sections: [
+    { title: "Survival first",
+      rows: [
+        ["Esc", "Return to Normal mode (from any mode)"],
+        [":w", "Write (save) the file"],
+        [":q", "Quit"],
+        [":wq  or  ZZ", "Save and quit"],
+        [":q!", "Quit WITHOUT saving"],
+        [":w !sudo tee %", "Save a file you opened without sudo"]
+      ]},
+    { title: "Modes",
+      rows: [
+        ["Normal — Esc", "Navigate and edit with the keys below"],
+        ["Insert — i a o …", "Type text like a normal editor"],
+        ["Visual — v V Ctrl+v", "Select text, then act on it"],
+        ["Command — :", "Ex commands: save, search/replace, settings"],
+        ["Replace — R", "Overwrite text as you type"]
+      ]},
+    { title: "Entering Insert mode",
+      rows: [
+        ["i / a", "Insert before / after the cursor"],
+        ["I / A", "Insert at first non-blank / at end of line"],
+        ["o / O", "Open a new line below / above and insert"],
+        ["gi", "Insert at your last insert position"],
+        ["Esc or Ctrl+[", "Back to Normal mode"]
+      ]},
+    { title: "Moving around",
+      rows: [
+        ["h j k l", "Left, down, up, right"],
+        ["w / b / e", "Next word start / previous word start / word end"],
+        ["W B E", "Same but by WORDs (whitespace-delimited)"],
+        ["0 / ^", "Start of line / first non-blank char"],
+        ["$", "End of line"],
+        ["gg / G", "Top of file / bottom of file"],
+        ["123G  or  :123", "Go to line 123"],
+        ["{ / }", "Previous / next blank-line-separated paragraph"],
+        ["%", "Jump to matching bracket () [] {}"],
+        ["f x / F x", "Find next / previous x on the line"],
+        ["t x / T x", "Till just before next / previous x"],
+        ["; / ,", "Repeat last f/t forward / backward"],
+        ["* / #", "Search word under cursor forward / backward"],
+        ["Ctrl+d / Ctrl+u", "Half page down / up"],
+        ["Ctrl+f / Ctrl+b", "Full page down / up"],
+        ["Ctrl+e / Ctrl+y", "Scroll one line down / up (cursor stays)"],
+        ["zz / zt / zb", "Center / top / bottom the cursor's line on screen"],
+        ["H / M / L", "Jump to top / middle / bottom of the screen"],
+        ["Ctrl+o / Ctrl+i", "Jump back / forward through your jump history"],
+        ["5j / 3dw / 2yy", "Counts multiply any motion or command"]
+      ]},
+    { title: "Editing",
+      rows: [
+        ["x / X", "Delete char under / before cursor"],
+        ["r x", "Replace one char with x — no Insert mode"],
+        ["R", "Replace mode — overwrite until Esc"],
+        ["dd", "Delete (cut) line — 3dd cuts 3 lines"],
+        ["dw / de / db", "Delete to next word start / word end / back to word start"],
+        ["D  or  d$", "Delete to end of line"],
+        ["cw", "Change word — delete it and enter Insert mode"],
+        ["cc / C", "Change whole line / to end of line"],
+        ["J", "Join line below onto current line"],
+        ["yy", "Yank (copy) line — 3yy copies 3 lines"],
+        ["y{motion}", "Yank anything: yw word, y$ to end of line, yj this line + line below"],
+        ["p / P", "Paste after / before cursor"],
+        ["u / Ctrl+r", "Undo / redo"],
+        [".", "Repeat the last change — the most underrated key in vim"],
+        ["Ctrl+a / Ctrl+x", "Increment / decrement number under cursor"],
+        ["~", "Toggle case of char under cursor"],
+        ["gUU / guu", "UPPERCASE / lowercase the whole line"],
+        [">> / <<", "Indent / outdent line"],
+        ["== / gg=G", "Auto-indent line / re-indent whole file"]
+      ]},
+    { title: "Search & replace",
+      rows: [
+        ["/text  /  ?text", "Search forward / backward"],
+        ["n / N", "Next / previous match"],
+        ["* / #", "Search word under cursor forward / backward"],
+        [":noh", "Clear search highlighting"],
+        [":s/old/new/", "Replace first match on current line"],
+        [":s/old/new/g", "Replace all matches on current line"],
+        [":%s/old/new/g", "Replace in the whole file"],
+        [":%s/old/new/gc", "Whole file, confirm each replacement"],
+        [":%s/old/new/gi", "Whole file, ignore case"],
+        [":5,20s/old/new/g", "Replace only on lines 5–20"]
+      ]},
+    { title: "Visual mode — select, then act",
+      rows: [
+        ["v / V / Ctrl+v", "Select characters / whole lines / a vertical block"],
+        ["o / O", "Jump cursor to the other end of the selection"],
+        ["on selection:  d  or  x", "Delete it"],
+        ["on selection:  y", "Yank (copy) it"],
+        ["on selection:  c", "Change (delete + insert) it"],
+        ["on selection:  > / <", "Indent / outdent it"],
+        ["on selection:  u  U  ~", "lowercase / UPPERCASE / toggle case"],
+        ["on selection:  :sort", "Sort the selected lines"],
+        ["gv", "Re-select the last selection"]
+      ]},
+    { title: "Block-mode magic (Ctrl+v)",
+      rows: [
+        ["Ctrl+v, select with j/k, then  I text Esc", "Insert text at the start of every selected line — comment blocks!"],
+        ["Ctrl+v, select with j/k, then  A text Esc", "Append text at the end of every selected line"],
+        ["Ctrl+v, select with j/k, then  x", "Delete a vertical column of characters"]
+      ]},
+    { title: "Marks, registers, macros",
+      rows: [
+        ["m a … m z", "Set mark a at cursor"],
+        ["' a  /  ` a", "Jump to mark a — line start / exact spot"],
+        ["` .", "Jump to position of last change"],
+        ["\" a y y  /  \" a p", "Yank line into register a / paste from register a"],
+        [":reg", "Show all registers"],
+        ["q a … q", "Record macro a / stop recording"],
+        ["@ a   /   5@a", "Replay macro a once / five times"],
+        ["@@", "Replay the last macro again"]
+      ]},
+    { title: "Split windows, tabs, buffers",
+      rows: [
+        [":sp file  /  :vs file", "Horizontal / vertical split"],
+        ["Ctrl+w then h j k l", "Move to split left / down / up / right"],
+        ["Ctrl+w then w", "Cycle to next split"],
+        ["Ctrl+w then =", "Equalize split sizes"],
+        ["Ctrl+w then _  /  |", "Maximize height / width"],
+        ["Ctrl+w then o", "Close all splits except current"],
+        [":tabe file", "Open file in a new tab"],
+        ["gt / gT  /  3gt", "Next / previous tab / go to tab 3"],
+        [":ls  /  :bn  /  :bp  /  :bd", "List buffers / next / previous / close current buffer"]
+      ]},
+    { title: "System clipboard",
+      rows: [
+        ["\"+y  /  \"+p", "Yank / paste using the system clipboard"],
+        [":w !pbcopy", "macOS stock vim: pipe whole file to clipboard"],
+        [":'<,'>w !pbcopy", "Pipe the visual selection to clipboard (macOS)"],
+        [":r !pbpaste", "Insert macOS clipboard contents into the file"],
+        [":r !xclip -sel clip -o", "Same on Linux (X11)"]
+      ]},
+    { title: "Minimal .vimrc starter",
+      rows: [[ "Drop in ~/.vimrc on both macOS and Linux", "See block below" ]],
+      code:
+"syntax on\n" +
+"set number relativenumber     \" line numbers + relative jumps (5j etc.)\n" +
+"set tabstop=4 shiftwidth=4 expandtab\n" +
+"set hlsearch incsearch        \" highlight + incremental search\n" +
+"set ignorecase smartcase      \" case-insensitive unless you use CAPS\n" +
+"set mouse=a                   \" scroll/click with mouse or trackpad\n" +
+"set clipboard=unnamed         \" yy/p use the system clipboard*\n" +
+"\" * needs a clipboard-enabled vim: brew install vim (macOS)"
+    }
+  ]
+},
+
+/* ---------------- TMUX ---------------- */
+{
+  id: "tmux", group: "Editor & Terminal", icon: "🪟", label: "tmux", accent: "#b392f0",
+  blurb: "Terminal multiplexer — persistent sessions that survive disconnects. Default prefix is Ctrl+b: press it, release, then press the key.",
+  notes: [
+    "Why tmux: SSH drops don't kill your work; one window, many panes; pair with a colleague on the same session.",
+    "Mouse support is off by default — the config at the bottom turns it on."
+  ],
+  sections: [
+    { title: "Sessions",
+      rows: [
+        ["tmux new -s work", "Start a named session"],
+        ["tmux new -s work -d", "Start a session detached (from a script)"],
+        ["tmux ls", "List sessions"],
+        ["tmux attach -t work", "Attach to session work"],
+        ["tmux attach -t work -d", "Attach and detach other clients (take over)"],
+        ["tmux kill-session -t work  /  kill-server", "Kill one session / everything"],
+        ["Prefix d", "Detach — session keeps running in the background"],
+        ["Prefix $", "Rename session"],
+        ["Prefix s", "List sessions and jump between them"]
+      ]},
+    { title: "Windows (tabs)",
+      rows: [
+        ["Prefix c", "Create new window"],
+        ["Prefix ,", "Rename current window"],
+        ["Prefix n / Prefix p", "Next / previous window"],
+        ["Prefix 0…9", "Jump to window number"],
+        ["Prefix w", "Visual tree of sessions and windows"],
+        ["Prefix &", "Kill current window"]
+      ]},
+    { title: "Panes (splits)",
+      rows: [
+        ["Prefix %", "Split — new pane on the right"],
+        ["Prefix \"", "Split — new pane below"],
+        ["Prefix ← ↑ → ↓", "Move focus between panes"],
+        ["Prefix o", "Cycle to next pane"],
+        ["Prefix x", "Kill current pane"],
+        ["Prefix z", "Zoom pane to full window — press again to restore"],
+        ["Prefix {  /  }", "Swap pane with previous / next"],
+        ["Prefix Space", "Cycle through pane layouts"],
+        ["Prefix q", "Flash pane numbers (jump with the number)"],
+        ["hold Prefix + arrow", "Resize the pane (repeat arrows while holding Prefix)"],
+        ["exit  or  Ctrl+d", "Close the pane's shell"]
+      ]},
+    { title: "Copy mode (vi style)",
+      rows: [
+        ["Prefix [", "Enter copy mode — scroll back through output"],
+        ["q", "Leave copy mode"],
+        ["/text then n / N", "Search up / down in copy mode"],
+        ["Space", "Begin selection (in mode-keys vi)"],
+        ["Enter", "Copy selection and exit"],
+        ["Prefix ]", "Paste the buffer"]
+      ]},
+    { title: ".tmux.conf starter",
+      rows: [[ "Drop in ~/.tmux.conf, then reload with: Prefix : source-file ~/.tmux.conf", "See block below" ]],
+      code:
+"set -g mouse on                 # scroll + click panes with mouse/trackpad\n" +
+"set -g history-limit 50000      # big scrollback buffer\n" +
+"set -g base-index 1             # windows start at 1, not 0\n" +
+"setw -g pane-base-index 1\n" +
+"set -g renumber-windows on      # close a window -> others renumber\n" +
+"setw -g mode-keys vi            # vi keys in copy mode\n" +
+"bind r source-file ~/.tmux.conf \\; display 'Reloaded!'"
+    }
+  ]
+},
+
+/* ---------------- GIT ---------------- */
+{
+  id: "git", group: "DevOps Tools", icon: "🌿", label: "Git", accent: "#f0883e",
+  blurb: "Version control essentials — everyday flow, branches, undo, and the rescue commands.",
+  notes: [
+    "git help <command> shows the full manual for any command.",
+    "Prefer switch / restore (Git 2.23+) over the older checkout / reset for moving and undoing."
+  ],
+  sections: [
+    { title: "Setup & identity",
+      rows: [
+        ["git config --global user.name 'Your Name'", "Set the name attached to commits"],
+        ["git config --global user.email 'you@example.com'", "Set the email attached to commits"],
+        ["git config --global core.editor vim", "Set the editor for commit messages etc."],
+        ["git config --global alias.st status", "Shortcut: git st now runs status"],
+        ["git config --list --show-origin", "See every setting and where it comes from"]
+      ]},
+    { title: "Everyday flow",
+      rows: [
+        ["git init  /  git clone URL", "Start a repo locally / copy one from a remote"],
+        ["git clone URL -b dev --depth 1", "Clone one branch, last commit only (fast)"],
+        ["git status -sb", "Short status with branch info"],
+        ["git add -A  /  git add -p", "Stage everything / review and stage hunk by hunk"],
+        ["git commit -m 'message'", "Commit staged changes"],
+        ["git commit --amend", "Fix the last commit (message or content) — only before pushing"],
+        ["git push", "Push current branch"],
+        ["git push -u origin branch", "First push of a new branch + set upstream"],
+        ["git pull --rebase", "Fetch and replay your commits on top — linear history"],
+        ["git fetch --all --prune", "Update all remotes, drop deleted branches"]
+      ]},
+    { title: "Branching",
+      rows: [
+        ["git switch branch", "Change branch"],
+        ["git switch -c new-branch", "Create and switch to a new branch"],
+        ["git branch -a", "List local and remote branches"],
+        ["git branch -d branch", "Delete a merged local branch"],
+        ["git branch -m old new", "Rename the current branch"],
+        ["git merge feature", "Merge feature into the current branch"],
+        ["git merge --abort", "Back out of a conflicted merge"],
+        ["git rebase main", "Replay current branch's commits onto main"],
+        ["git rebase --continue / --abort", "After fixing conflicts / cancel a rebase"],
+        ["git push origin --delete branch", "Delete the remote branch"]
+      ]},
+    { title: "Inspect & compare",
+      rows: [
+        ["git log --oneline --graph --decorate --all", "Compact visual history of all branches"],
+        ["git log -p file", "History of a file with full diffs"],
+        ["git log -S 'text'", "Find the commit that added or removed a string (pickaxe)"],
+        ["git show SHA", "Show one commit in full"],
+        ["git diff", "Unstaged changes"],
+        ["git diff --staged", "Staged changes vs last commit"],
+        ["git diff main..feature", "Everything feature has that main doesn't"],
+        ["git blame file", "Who changed each line, in which commit"],
+        ["git stash list", "List stashed work"]
+      ]},
+    { title: "Undo & recover",
+      rows: [
+        ["git restore file", "Discard unstaged changes in a file (destructive)"],
+        ["git restore --staged file", "Unstage, keep the changes in the working dir"],
+        ["git reset --soft HEAD~1", "Undo last commit, keep changes staged"],
+        ["git reset --hard origin/main", "Nuke local state back to remote (destructive!)"],
+        ["git revert SHA", "Create a new commit undoing SHA — safe on shared branches"],
+        ["git stash push -m 'wip'", "Shelve current changes with a label"],
+        ["git stash -u", "Stash including untracked files"],
+        ["git stash pop / apply", "Restore newest stash and drop it / keep it"],
+        ["git stash drop stash@{0}", "Delete one stash"],
+        ["git clean -fd", "Delete untracked files and dirs (destructive!)"],
+        ["git reflog", "Every HEAD move — find 'lost' commits to reset back to"]
+      ]},
+    { title: "Remotes",
+      rows: [
+        ["git remote -v", "List remotes and URLs"],
+        ["git remote add origin URL", "Connect a local repo to a new remote"],
+        ["git remote set-url origin URL", "Change the remote URL (e.g. SSH instead of HTTPS)"],
+        ["git branch -vv", "Local branches with tracking info"],
+        ["git push --force-with-lease", "Safer force push — refuses if remote moved; never plain -f on shared branches"]
+      ]},
+    { title: "Advanced",
+      rows: [
+        ["git cherry-pick SHA", "Copy one commit onto the current branch"],
+        ["git rebase -i HEAD~3", "Interactively reword / squash / drop the last 3 commits"],
+        ["git tag -a v1.2 -m 'release 1.2'", "Annotated release tag"],
+        ["git push --tags", "Push tags (they don't go with normal push)"],
+        ["git worktree add ../hotfix hotfix-branch", "Two branches checked out in two folders at once"],
+        ["git bisect start / bad / good v1.1", "Binary-search which commit broke things"]
+      ]}
+  ]
+},
+
+/* ---------------- DOCKER ---------------- */
+{
+  id: "docker", group: "DevOps Tools", icon: "🐳", label: "Docker & Compose", accent: "#58a6ff",
+  blurb: "Containers: run, build, inspect, clean up. Compose included (v2 syntax: docker compose).",
+  notes: [
+    "On Linux, docker often needs sudo or membership in the docker group; on macOS (Docker Desktop) it doesn't.",
+    "docker compose (space, v2) replaces the old docker-compose hyphen syntax — same commands otherwise."
+  ],
+  sections: [
+    { title: "Containers — the daily loop",
+      rows: [
+        ["docker run -d --name web -p 8080:80 nginx", "Start a detached container, host port 8080 → container 80"],
+        ["docker ps  /  docker ps -a", "Running containers / include stopped ones"],
+        ["docker exec -it web sh", "Shell INSIDE a running container"],
+        ["docker logs -f --tail 100 web", "Follow last 100 log lines"],
+        ["docker inspect web", "Full JSON detail — IPs, mounts, env, entrypoint"],
+        ["docker stats", "Live CPU / memory per container"],
+        ["docker cp web:/etc/nginx/nginx.conf .", "Copy a file out of a container (and in: . web:/tmp/)"],
+        ["docker stop web  /  docker start web  /  docker restart web", "Stop / start / restart"],
+        ["docker rm web  /  docker rm -f web", "Remove stopped container / force-remove a running one"],
+        ["docker stop $(docker ps -q)", "Stop every running container"]
+      ]},
+    { title: "docker run — the flags that matter",
+      rows: [
+        ["-d", "Detached — run in the background"],
+        ["-it", "Interactive with a TTY — for shells"],
+        ["--name web", "Give it a name you can address it by"],
+        ["-p 8080:80", "Publish port — host:container"],
+        ["-v /host/dir:/container/dir", "Bind-mount a host directory"],
+        ["-e VAR=value", "Set an environment variable"],
+        ["--rm", "Auto-delete the container when it exits"],
+        ["--restart unless-stopped", "Restart policy — survives reboots and crashes"],
+        ["--network mynet", "Attach to a custom network (DNS names work between containers)"],
+        ["-u 1000:1000", "Run as a non-root user"],
+        ["--memory 512m", "Cap memory usage"]
+      ]},
+    { title: "Images",
+      rows: [
+        ["docker build -t app:1.0 .", "Build an image from ./Dockerfile"],
+        ["docker build --no-cache -t app:1.0 .", "Rebuild without cache"],
+        ["docker images", "List local images"],
+        ["docker pull nginx:1.25", "Download a specific tag (avoid floating :latest)"],
+        ["docker tag app:1.0 repo.example.com/team/app:1.0", "Retag for a registry"],
+        ["docker push repo.example.com/team/app:1.0", "Push to the registry"],
+        ["docker rmi app:1.0", "Remove a local image"],
+        ["docker history app:1.0", "Show the layers of an image"],
+        ["docker save -o app.tar app:1.0  /  docker load -i app.tar", "Export / import an image as a file"]
+      ]},
+    { title: "Volumes & networks",
+      rows: [
+        ["docker volume create data", "Create a named volume (managed by Docker)"],
+        ["docker volume ls / inspect data / rm data / prune", "List / detail / remove / clean volumes"],
+        ["docker network create mynet", "Create a user-defined network"],
+        ["docker network ls / inspect mynet", "List networks / see attached containers"],
+        ["docker network connect mynet web", "Attach a running container to a network"]
+      ]},
+    { title: "Docker Compose (docker compose …)",
+      rows: [
+        ["docker compose up -d", "Start everything in docker-compose.yml, detached"],
+        ["docker compose up -d --build", "Rebuild images first, then start"],
+        ["docker compose ps  /  logs -f api", "Status / follow one service's logs"],
+        ["docker compose exec api sh", "Shell into a running service"],
+        ["docker compose restart api", "Restart one service"],
+        ["docker compose down", "Stop and remove containers + networks"],
+        ["docker compose down -v", "Also delete volumes — wipes DB data!"],
+        ["docker compose config", "Validate and print the merged config"],
+        ["docker compose pull", "Pull the latest images defined in the file"]
+      ]},
+    { title: "Cleanup & disk space",
+      rows: [
+        ["docker system df", "How much disk Docker is using"],
+        ["docker system prune", "Remove stopped containers, dangling images, unused networks"],
+        ["docker system prune -a --volumes", "Nuke ALL unused data — read it twice before running"],
+        ["docker image prune -a", "Remove every image not used by a container"]
+      ]}
+  ]
+},
+
+/* ---------------- KUBERNETES ---------------- */
+{
+  id: "k8s", group: "DevOps Tools", icon: "☸️", label: "Kubernetes (kubectl)", accent: "#7aa2f7",
+  blurb: "kubectl essentials: look around, deploy, debug pods, and maintain nodes.",
+  notes: [
+    "Flags that work on nearly everything: -n namespace, -A (all namespaces), -o wide|yaml|json, -w (watch).",
+    "Shortnames: po=pods, svc=services, deploy=deployments, no=nodes, ns=namespaces, cm=configmaps, ing=ingresses, pvc, sa."
+  ],
+  sections: [
+    { title: "Context & namespace",
+      rows: [
+        ["kubectl config get-contexts", "List clusters you can reach"],
+        ["kubectl config current-context", "Which cluster am I pointed at?"],
+        ["kubectl config use-context prod", "Switch cluster"],
+        ["kubectl config set-context --current --namespace=apps", "Default namespace for this context"],
+        ["kubectl get namespaces", "List namespaces"]
+      ]},
+    { title: "See what is running",
+      rows: [
+        ["kubectl get pods -A -o wide", "All pods everywhere, with nodes and IPs"],
+        ["kubectl get all -n apps", "Pods, services, deployments, replicasets in a namespace"],
+        ["kubectl get deploy,svc,ing -n apps", "Just deployments, services, ingresses"],
+        ["kubectl describe pod web-abc123", "Events, probes, env, why it is stuck"],
+        ["kubectl get events -A --sort-by=.metadata.creationTimestamp", "Cluster events, newest last"],
+        ["kubectl top pods / top nodes", "Live CPU / memory usage (needs metrics-server)"],
+        ["kubectl api-resources", "Every resource type the cluster knows"],
+        ["kubectl explain pod.spec.containers", "Built-in docs for any field"]
+      ]},
+    { title: "Deploy & scale",
+      rows: [
+        ["kubectl apply -f manifest.yaml  /  -f dir/", "Create or update from YAML"],
+        ["kubectl delete -f manifest.yaml", "Remove what the YAML defines"],
+        ["kubectl edit deploy/web", "Edit the live object in your editor"],
+        ["kubectl set image deploy/web web=nginx:1.25", "Roll out a new image tag"],
+        ["kubectl scale deploy/web --replicas=5", "Set replica count by hand"],
+        ["kubectl autoscale deploy/web --min 2 --max 10 --cpu-percent 80", "Horizontal Pod Autoscaler"],
+        ["kubectl rollout status deploy/web", "Watch a rollout finish"],
+        ["kubectl rollout history deploy/web  /  undo deploy/web", "See revisions / roll back one"],
+        ["kubectl rollout restart deploy/web", "Restart all pods (picks up config/secret changes)"],
+        ["kubectl create deploy web --image=nginx --dry-run=client -o yaml > web.yaml", "Generate starter YAML"],
+        ["kubectl expose deploy web --port 80 --type=LoadBalancer", "Put a service in front of it"],
+        ["kubectl create configmap cfg --from-file=app.conf", "ConfigMap from a file"],
+        ["kubectl create secret generic db --from-literal=PASS=x", "Secret from a literal"]
+      ]},
+    { title: "Debugging pods",
+      rows: [
+        ["kubectl logs -f web-abc123", "Follow one pod's logs"],
+        ["kubectl logs web-abc123 -c sidecar", "Logs of one container in a multi-container pod"],
+        ["kubectl logs web-abc123 --previous", "Logs from BEFORE the last crash — the money flag"],
+        ["kubectl logs deploy/web --all-containers --since=1h", "All pods of a deployment, last hour"],
+        ["kubectl exec -it web-abc123 -- sh", "Shell into the running container"],
+        ["kubectl port-forward svc/web 8080:80", "Tunnel a service to localhost:8080"],
+        ["kubectl cp web-abc123:/var/log/app.log ./app.log", "Copy a file out of a pod"],
+        ["kubectl get pod web-abc123 -o yaml", "Full live definition — real state vs manifest"],
+        ["kubectl diff -f dir/", "Dry-run compare: cluster vs your YAML"],
+        ["kubectl wait --for=condition=Ready pod -l app=web --timeout=300s", "Block until pods are ready"],
+        ["kubectl run tmp --rm -it --image=busybox -- sh", "Throwaway debug pod"],
+        ["kubectl delete pod web-abc123 --grace-period=0 --force", "Force-delete a stuck pod — last resort"]
+      ]},
+    { title: "Nodes & maintenance",
+      rows: [
+        ["kubectl get nodes -o wide", "Cluster nodes with versions and IPs"],
+        ["kubectl describe node node1", "Capacity, pressure, running pods"],
+        ["kubectl cordon node1 / uncordon node1", "Mark unschedulable / back to normal"],
+        ["kubectl drain node1 --ignore-daemonsets --delete-emptydir-data", "Evict pods for maintenance"],
+        ["kubectl taint node node1 key=value:NoSchedule", "Keep pods off a node unless they tolerate it"]
+      ]},
+    { title: "Handy one-liners",
+      rows: [
+        ["watch kubectl get pods -A", "Auto-refreshing pod list (or add -w to any get)"],
+        ["kubectl get pods -A --field-selector status.phase=Failed", "All crashed pods"],
+        ["kubectl get pods -A --field-selector spec.nodeName=node1", "Everything running on one node"],
+        ["kubectl get endpoints svc/web", "Is the service actually backing any pods?"]
+      ]}
+  ]
+},
+
+/* ---------------- TERRAFORM ---------------- */
+{
+  id: "terraform", group: "DevOps Tools", icon: "🧱", label: "Terraform", accent: "#c58ffb",
+  blurb: "Infrastructure as Code — write .tf files, plan, apply. State is the source of truth.",
+  notes: [
+    "The loop: edit .tf → terraform init → plan → apply. Read the plan before every apply — the + / - / ~ symbols mean create / destroy / update in place.",
+    "Never edit .tfstate by hand and never lose it: use a remote backend (S3 + DynamoDB lock, GCS, Terraform Cloud) from day one."
+  ],
+  sections: [
+    { title: "Core workflow",
+      rows: [
+        ["terraform init", "Download providers and modules, configure the backend — once per module, and after backend changes"],
+        ["terraform init -upgrade", "Also bump providers to the newest versions your constraints allow"],
+        ["terraform init -reconfigure", "Reconfigure the backend — switch state location without migrating"],
+        ["terraform validate", "Fast syntax + consistency check — no API calls, safe offline"],
+        ["terraform fmt -recursive", "Rewrite all files in canonical formatting (CI should fail on diffs)"],
+        ["terraform plan", "Preview: refresh state, then show what would be created / destroyed / updated"],
+        ["terraform plan -out=tfplan", "Save the plan so the apply executes EXACTLY what you reviewed"],
+        ["terraform apply", "Execute changes — shows the plan first and asks to confirm"],
+        ["terraform apply tfplan", "Apply a saved plan without re-planning (the CI-safe path)"],
+        ["terraform apply -auto-approve", "Skip the confirmation — for CI pipelines only"],
+        ["terraform destroy", "Tear down everything tracked in state — read the plan it shows!"],
+        ["terraform destroy -target=aws_instance.web", "Tear down a single resource"]
+      ]},
+    { title: "Variables & outputs",
+      rows: [
+        ["terraform.tfvars", "Default variable values — auto-loaded from the module directory"],
+        ["-var image=nginx:1.25", "Set one variable on the command line"],
+        ["-var-file=prod.tfvars", "Load a whole values file (prod vs staging)"],
+        ["TF_VAR_image", "Set a variable via environment variable — secret-friendly"],
+        ["terraform output  /  output -json", "Print root module outputs (IPs, IDs) for scripts"],
+        ["terraform console", "Interactive REPL for expressions: keys(var.map), aws_instance.web.arn"]
+      ]},
+    { title: "State management",
+      rows: [
+        ["terraform state list", "Everything tracked in this state"],
+        ["terraform state show aws_instance.web", "Full attributes of one resource, from state"],
+        ["terraform state mv old.name new.name", "Rename in state — refactoring without destroy + create"],
+        ["terraform state rm aws_instance.web", "Forget a resource: keeps running, no longer managed"],
+        ["terraform import aws_instance.web i-1234", "Adopt existing infra — the resource block must already match"],
+        ["terraform apply -replace=aws_instance.web", "Force destroy + recreate one resource (the modern taint)"],
+        ["terraform taint aws_instance.web", "Legacy version of -replace — marks resource for recreation"],
+        ["terraform force-unlock LOCK_ID", "Release a stuck state lock — after checking nobody is really holding it"]
+      ]},
+    { title: "Workspaces, targeting & drift",
+      rows: [
+        ["terraform workspace list / new / select / delete", "Multiple states per config — many teams prefer separate directories instead"],
+        ["terraform workspace show", "Current workspace name"],
+        ["-target=module.vpc", "Plan or apply ONE module / resource — an escape hatch, not a habit"],
+        ["terraform plan -refresh-only", "Sync state from real infra without planning changes — drift detection"],
+        ["terraform providers lock -platform=linux_amd64", "Pre-pin provider checksums for air-gapped / reproducible CI"]
+      ]},
+    { title: "Starter main.tf",
+      rows: [[ "Provider, remote backend, variable, resource and output in one file", "See block below" ]],
+      code:
+"terraform {\n" +
+"  required_version = \">= 1.5\"\n" +
+"  backend \"s3\" {              # remote state + lock\n" +
+"    bucket = \"my-tfstate-prod\"\n" +
+"    key    = \"network.tfstate\"\n" +
+"    region = \"us-east-1\"\n" +
+"  }\n" +
+"}\n" +
+"\n" +
+"provider \"aws\" {\n" +
+"  region = var.region\n" +
+"}\n" +
+"\n" +
+"variable \"region\" {\n" +
+"  type    = string\n" +
+"  default = \"us-east-1\"\n" +
+"}\n" +
+"\n" +
+"resource \"aws_instance\" \"web\" {\n" +
+"  ami           = \"ami-0c02fb55956c7d316\"\n" +
+"  instance_type = \"t3.micro\"\n" +
+"  tags          = { Name = \"web-1\" }\n" +
+"}\n" +
+"\n" +
+"output \"public_ip\" {\n" +
+"  value = aws_instance.web.public_ip\n" +
+"}"
+    }
+  ]
+},
+
+/* ---------------- HELM ---------------- */
+{
+  id: "helm", group: "DevOps Tools", icon: "⛵", label: "Helm", accent: "#56b6c2",
+  blurb: "Package manager for Kubernetes — charts are templates + values; every install/upgrade is a numbered Release you can roll back.",
+  notes: [
+    "helm upgrade --install is the idempotent daily driver: creates the release if missing, upgrades otherwise.",
+    "Plugin helm-diff (helm plugin install https://github.com/databus23/helm-diff) shows what an upgrade WOULD change — terraform plan for Helm."
+  ],
+  sections: [
+    { title: "Releases — the daily loop",
+      rows: [
+        ["helm install myapp ./mychart", "Deploy a local chart as release myapp"],
+        ["helm install myapp bitnami/nginx -n web", "Deploy a chart from a repo into namespace web"],
+        ["helm upgrade --install myapp ./mychart -f prod.yaml", "Idempotent deploy: install or upgrade (the CI/CD entrypoint)"],
+        ["helm upgrade myapp ./mychart --set image.tag=1.2.3", "Deploy with a one-off value override"],
+        ["helm list -A", "All releases in all namespaces, with revisions and status"],
+        ["helm history myapp -n web", "Revision numbers of a release"],
+        ["helm rollback myapp 3 -n web", "Roll back to revision 3"],
+        ["helm uninstall myapp -n web", "Delete the release and its resources"],
+        ["helm status myapp -n web", "Release state and last-deployed time"],
+        ["helm get values myapp -n web --all", "Values currently in effect in the cluster"],
+        ["helm get manifest myapp -n web", "The exact rendered YAML that was deployed"]
+      ]},
+    { title: "Upgrade flags that matter",
+      rows: [
+        ["-f values.yaml -f prod.yaml", "Layer value files — later files win"],
+        ["--set image.tag=v2  /  --set-string", "One-off override (string-safe variant)"],
+        ["--reuse-values", "Keep the release's current values, apply only what you pass now"],
+        ["--create-namespace", "Create the target namespace if it doesn't exist"],
+        ["--wait", "Block until pods are Ready before reporting success"],
+        ["--atomic", "--wait plus automatic rollback on failure — use in CI"],
+        ["--dry-run", "Render to stdout without touching the cluster (--dry-run=server adds server-side validation)"],
+        ["--version 3.2.1", "Pin an exact chart version"],
+        ["-n web  /  --kube-context prod", "Target namespace / target cluster"],
+        ["--timeout 10m", "Override the default 5m wait timeout"]
+      ]},
+    { title: "Finding & managing charts",
+      rows: [
+        ["helm repo add bitnami https://charts.bitnami.com/bitnami", "Register a chart repository"],
+        ["helm repo update", "Refresh repo indexes — do this before pulling new versions"],
+        ["helm search repo nginx  /  helm search hub nginx", "Search added repos / Artifact Hub"],
+        ["helm show values bitnami/nginx", "Every knob the chart exposes — read this before deploying"],
+        ["helm show chart bitnami/nginx", "Chart.yaml metadata: appVersion, dependencies"],
+        ["helm pull bitnami/nginx --untar", "Download chart source for reading or forking"],
+        ["helm template myapp ./mychart", "Render templates locally — debug without a cluster"],
+        ["helm package ./mychart", "Build the distributable .tgz"],
+        ["helm push mychart-1.0.0.tgz oci://reg.example.com/charts", "Publish to an OCI registry (charts like docker images)"],
+        ["helm dependency update", "Pull a chart's subcharts into charts/"]
+      ]},
+    { title: "Creating charts",
+      rows: [
+        ["helm create mychart", "Scaffold a full example chart — deployment, service, ingress, HPA"],
+        ["helm lint mychart", "Chart correctness check — run it in CI"],
+        ["helm test myapp -n web", "Run the chart's test pods (templates with the helm.sh/hook: test annotation)"],
+        ["Chart layout", "Chart.yaml (name + version), values.yaml (defaults), templates/*.yaml — reference values as {{ .Values.key }}"]
+      ]}
+  ]
+},
+
+/* ---------------- AWS CLI ---------------- */
+{
+  id: "aws", group: "DevOps Tools", icon: "☁️", label: "AWS CLI", accent: "#ff9900",
+  blurb: "AWS CLI v2 essentials: identity, EC2, S3, IAM, CloudWatch Logs, ECR, SSM.",
+  notes: [
+    "First command on any new machine: aws sts get-caller-identity — proves which account / role you are.",
+    "Every command accepts: --profile NAME, --region us-east-1, --output json|yaml|table|text, --query (JMESPath filter), --dry-run."
+  ],
+  sections: [
+    { title: "Setup & identity",
+      rows: [
+        ["aws configure", "Set keys, region, output format interactively (~/.aws/credentials)"],
+        ["aws configure list", "Show active config and where it comes from"],
+        ["aws sts get-caller-identity", "Who am I? Account ID, ARN, assumed role"],
+        ["aws configure get region", "Print the default region"],
+        ["aws iam list-account-aliases", "Human-friendly account name"]
+      ]},
+    { title: "EC2",
+      rows: [
+        ["aws ec2 describe-instances", "All instances (very verbose — add a query, below)"],
+        ["aws ec2 describe-instances --filters Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[InstanceId,InstanceType,PublicIpAddress]' --output table", "Running instances as a compact table"],
+        ["aws ec2 describe-instances --filters Name=tag:Name,Values=web-server", "Find instances by Name tag"],
+        ["aws ec2 start-instances --instance-ids i-1234  /  stop-instances …", "Start / stop an instance"],
+        ["aws ec2 describe-volumes --query 'Volumes[].[VolumeId,Size,State]' --output table", "EBS volumes at a glance"]
+      ]},
+    { title: "S3 (high-level commands)",
+      rows: [
+        ["aws s3 ls s3://bucket/prefix/", "List objects under a prefix"],
+        ["aws s3 ls s3://bucket --recursive --human-readable --summarize", "Everything, with total size"],
+        ["aws s3 cp file.txt s3://bucket/path/  /  cp s3://bucket/file.txt .", "Upload / download"],
+        ["aws s3 sync . s3://bucket/ --delete", "Mirror a folder — deletes remote files you removed locally!"],
+        ["aws s3 sync s3://bucket/prefix . --exclude '*.log'", "Download selectively"],
+        ["aws s3 mb s3://my-new-bucket  /  rb s3://my-new-bucket", "Make / remove a bucket"],
+        ["aws s3 presign s3://bucket/file --expires-in 3600", "Temporary public URL, valid 1 hour"],
+        ["aws s3 rm s3://bucket/prefix/ --recursive", "Delete everything under a prefix"]
+      ]},
+    { title: "IAM",
+      rows: [
+        ["aws iam list-users", "All users in the account"],
+        ["aws iam get-user --user-name alice", "One user's details"],
+        ["aws iam create-user --user-name alice", "Create a user"],
+        ["aws iam create-access-key --user-name alice", "Create API keys — for rotation"],
+        ["aws iam list-attached-user-policies --user-name alice", "What can this user do?"]
+      ]},
+    { title: "CloudWatch Logs",
+      rows: [
+        ["aws logs describe-log-groups --log-group-name-prefix /aws", "Find log groups"],
+        ["aws logs tail /aws/lambda/my-function --follow", "Live tail (v2) — Ctrl+c stops"],
+        ["aws logs tail /aws/lambda/my-fn --since 30m --filter-pattern ERROR", "Errors in the last 30 minutes"],
+        ["aws logs get-log-events --log-group-name G --log-stream-name S --limit 100", "Read one stream (older API)"]
+      ]},
+    { title: "ECR & SSM",
+      rows: [
+        ["aws ecr get-login-password | docker login -u AWS -p $(aws ecr get-login-password) acct.dkr.ecr.us-east-1.amazonaws.com", "Docker login to ECR"],
+        ["aws ecr describe-repositories --output table  /  create-repository --repository-name app", "List / create repos"],
+        ["aws ssm start-session --target i-1234", "Root shell on an EC2 box WITHOUT SSH — needs SSM agent"],
+        ["aws ssm describe-instance-information --query 'InstanceInformationList[].[InstanceId,IPAddress]' --output table", "Which instances are SSM-managed"]
+      ]}
+  ]
+},
+
+/* ---------------- SYSTEMD & JOURNALCTL ---------------- */
+{
+  id: "systemd", group: "Linux & Infra", icon: "⚙️", label: "systemd & journalctl", accent: "#f472b6",
+  blurb: "Service and log management on every modern Linux distro. (macOS uses launchd instead — these don't apply there.)",
+  notes: [
+    "After editing ANY unit file: sudo systemctl daemon-reload, then restart the service — forgetting this is the classic mistake.",
+    "systemctl controls units (services, timers, targets); journalctl reads the binary journals. Pipe either into less or grep."
+  ],
+  sections: [
+    { title: "Services — the daily loop",
+      rows: [
+        ["systemctl status nginx", "State, PID and recent log lines — the first command to run"],
+        ["systemctl start / stop / restart nginx", "Basic control"],
+        ["systemctl reload nginx", "Reload config without a restart, if the unit supports it"],
+        ["systemctl reload-or-restart nginx", "Reload if possible, restart otherwise"],
+        ["systemctl enable nginx  /  disable nginx", "Start (or not) at boot"],
+        ["systemctl enable --now nginx", "Enable AND start in one command"],
+        ["systemctl is-active / is-enabled nginx", "Quick state checks — perfect for scripts"],
+        ["systemctl mask / unmask nginx", "Hard-block a unit from starting, even manually"],
+        ["systemctl daemon-reload", "Reload unit definitions after editing them"],
+        ["systemctl edit nginx", "Drop-in override at /etc/systemd/system/nginx.service.d/"],
+        ["systemctl cat nginx", "Show the unit file plus all drop-ins actually in effect"],
+        ["systemctl list-units --type=service --state=running", "What is running right now"],
+        ["systemctl list-unit-files --type=service", "Everything installed and whether it's enabled at boot"],
+        ["systemctl list-dependencies nginx", "What pulls in what"]
+      ]},
+    { title: "Timers — the modern cron",
+      rows: [
+        ["systemctl list-timers --all", "All timers: last run, next run, the unit they trigger"],
+        ["systemctl enable --now mybackup.timer", "Schedule the .timer unit, not the .service"],
+        ["OnCalendar=*-*-* 03:00:00", "Run daily at 03:00 — in the [Timer] section"],
+        ["OnCalendar=Mon *-*-* 07:00:00", "Mondays at 07:00"],
+        ["Persistent=true", "Catch up a missed run after reboot — great for laptops"],
+        ["systemd-analyze security nginx.service", "Audit how hardened (or exposed) a service is"]
+      ]},
+    { title: "System & boot",
+      rows: [
+        ["systemctl reboot / poweroff / suspend", "Power actions"],
+        ["systemctl get-default  /  set-default multi-user.target", "Boot to text console vs GUI"],
+        ["systemctl isolate rescue.target", "Drop to rescue mode"],
+        ["systemd-analyze blame  /  critical-chain", "What made boot slow"],
+        ["hostnamectl set-hostname web-01", "Set the hostname (also: timedatectl set-timezone Europe/Berlin)"]
+      ]},
+    { title: "journalctl — logs",
+      rows: [
+        ["journalctl -u nginx -f", "Follow one service's logs live (like tail -f)"],
+        ["journalctl -u app --since '1 hour ago'  /  --since today", "Time-window filter"],
+        ["journalctl -b  /  -b -1", "This boot / previous boot — crash forensics"],
+        ["journalctl -p err..alert", "Only errors and worse (emerg, alert, crit, err…)"],
+        ["journalctl -k", "Kernel messages only"],
+        ["journalctl -n 100 -u app --no-pager", "Last 100 lines straight to stdout"],
+        ["journalctl _PID=1234  /  --grep='timeout'", "One process / regex across all messages"],
+        ["journalctl --disk-usage  /  --vacuum-time=7d  /  --vacuum-size=500M", "Journal size: inspect and trim"]
+      ]},
+    { title: "Custom service — copy-paste template",
+      rows: [[ "Place as /etc/systemd/system/myapp.service", "See block below" ]],
+      code:
+"[Unit]\n" +
+"Description=My App\n" +
+"After=network-online.target\n" +
+"Wants=network-online.target\n" +
+"\n" +
+"[Service]\n" +
+"User=app\n" +
+"WorkingDirectory=/opt/myapp\n" +
+"ExecStart=/opt/myapp/bin/server --port 8080\n" +
+"Restart=always\n" +
+"RestartSec=3\n" +
+"Environment=ENV=production\n" +
+"\n" +
+"[Install]\n" +
+"WantedBy=multi-user.target\n" +
+"\n" +
+"# then enable it:\n" +
+"#   sudo systemctl daemon-reload\n" +
+"#   sudo systemctl enable --now myapp.service"
+    }
+  ]
+},
+
+/* ---------------- NETWORK DEBUGGING ---------------- */
+{
+  id: "network", group: "Linux & Infra", icon: "🌐", label: "Network Debugging", accent: "#ff7b72",
+  blurb: "curl, dig, ss/lsof, nc, tcpdump — figure out why you can't reach it. Works on Linux and macOS unless noted.",
+  notes: [
+    "Order of elimination: DNS (dig) → route (ping / mtr) → port (nc / ss) → application (curl -v).",
+    "Linux ships ss / ip; macOS ships netstat / lsof — both variants are listed below."
+  ],
+  sections: [
+    { title: "curl — HTTP debugging",
+      rows: [
+        ["curl -v https://api.example.com", "Verbose: DNS lookup, TCP, TLS handshake, headers both ways"],
+        ["curl -I https://example.com", "Response headers only"],
+        ["curl -s -o /dev/null -w '%{http_code} %{time_total}s\\n' URL", "Just the status code + total time — health checks"],
+        ["curl -L", "Follow redirects"],
+        ["curl -X POST -H 'Content-Type: application/json' -d '{\"k\":1}' URL", "POST a JSON body"],
+        ["curl -u user:pass URL  /  -H 'Authorization: Bearer TOKEN'", "Basic auth / token header"],
+        ["curl -k https://self-signed.example.com", "Ignore TLS certificate errors"],
+        ["curl --resolve api.example.com:443:10.0.0.5 https://api.example.com", "Test one backend IP directly, bypassing DNS"],
+        ["curl -x http://proxy:8080 URL", "Send through a proxy"],
+        ["curl --max-time 5 --retry 3 URL", "Hard timeout + retries — for scripts"],
+        ["curl -F file=@photo.jpg URL", "Multipart file upload"],
+        ["curl ifconfig.me", "What is my public IP?"]
+      ]},
+    { title: "DNS",
+      rows: [
+        ["dig example.com +short", "Just the answer — for scripts"],
+        ["dig example.com MX / TXT @1.1.1.1", "Record type / specific resolver"],
+        ["dig -x 52.1.2.3", "Reverse DNS: IP to name"],
+        ["resolvectl query example.com", "What the box ACTUALLY resolves (systemd-resolved cache)"],
+        ["nslookup example.com", "Works everywhere including Windows — less detail"]
+      ]},
+    { title: "Ports & sockets",
+      rows: [
+        ["ss -tulpn", "Linux: everything listening (TCP/UDP) with the owning process"],
+        ["lsof -i :3000 -P -n", "Who owns port 3000 — macOS and Linux"],
+        ["lsof -iTCP -sTCP:LISTEN -P -n", "All listening TCP ports — macOS-friendly"],
+        ["netstat -an | grep LISTEN", "The classic, works everywhere"],
+        ["nc -zv host 22", "Is the port open? Sends no data"],
+        ["nc -l 9999 > in.txt  /  nc host 9999 < out.txt", "Ad-hoc file transfer between two machines"],
+        ["iperf3 -s  /  iperf3 -c host", "Measure real bandwidth between two machines"]
+      ]},
+    { title: "Routes & path",
+      rows: [
+        ["ping -c 3 example.com", "Reachability and round-trip time"],
+        ["ip a  /  ip -br addr", "Interface addresses (Linux); ifconfig on macOS"],
+        ["ip r", "Routing table (Linux); netstat -rn works on both"],
+        ["ip neigh", "ARP cache (Linux); arp -a on both"],
+        ["mtr example.com", "Live traceroute + ping combined — install: brew install mtr / apt install mtr-tiny"],
+        ["traceroute example.com", "Fixed path snapshot — mtr is usually more useful"]
+      ]},
+    { title: "tcpdump (sudo, on both OSes)",
+      rows: [
+        ["tcpdump -D", "List capture interfaces (Linux: use any)"],
+        ["sudo tcpdump -i any port 80", "All traffic on port 80, all interfaces"],
+        ["sudo tcpdump -i any host 10.0.0.5 and port 5432", "Narrow BPF filter — host AND port"],
+        ["sudo tcpdump -i any -A port 80", "Show ASCII payloads (plaintext protocols only)"],
+        ["sudo tcpdump -w out.pcap -i any host 10.0.0.5", "Capture to a file for Wireshark"],
+        ["tcpdump -r out.pcap", "Read a capture file"],
+        ["sudo tcpdump -i any 'tcp[tcpflags] & tcp-syn != 0'", "SYN packets only — new connections"]
+      ]}
+  ]
+},
+
+/* ---------------- LINUX ADMIN & CRON ---------------- */
+{
+  id: "admin", group: "Linux & Infra", icon: "🐧", label: "Linux Admin & Cron", accent: "#a9dc76",
+  blurb: "Users, permissions, storage and cron — the Linux admin loop every devops person ends up doing.",
+  notes: [
+    "Most of this works on macOS too (chmod, chown, crontab); user management differs there (System Settings / dscl).",
+    "Cron runs with a bare environment — always use absolute paths inside crontabs and log output to a file."
+  ],
+  sections: [
+    { title: "Users & groups",
+      rows: [
+        ["sudo adduser alice", "Debian/Ubuntu: friendly interactive creation"],
+        ["sudo useradd -m -s /bin/bash alice", "Low-level creation (RHEL/Fedora/Arch)"],
+        ["sudo passwd alice", "Set or reset a password"],
+        ["sudo usermod -aG docker alice", "Add to a secondary group — re-login to activate (-a keeps existing groups!)"],
+        ["sudo deluser alice  /  sudo userdel -r alice", "Delete user / also remove the home dir"],
+        ["id alice  /  groups  /  whoami", "UID, GID and group memberships"],
+        ["sudo -i  /  sudo -s", "Root login shell / root shell keeping your environment"],
+        ["sudo su - alice", "Become alice with her environment"]
+      ]},
+    { title: "Permissions",
+      rows: [
+        ["ls -l", "rwxr-xr-x = user / group / others — read, write, execute"],
+        ["chmod 755 file", "rwxr-xr-x — scripts and shared directories"],
+        ["chmod 644 file", "rw-r--r-- — normal files"],
+        ["chmod 600 file", "rw------- — secrets and private keys"],
+        ["chmod +x script.sh  /  chmod -R 750 dir/", "Add execute / apply recursively"],
+        ["sudo chown alice:dev file", "Change owner and group"],
+        ["sudo chgrp dev file", "Change group only"],
+        ["umask 022", "Default permissions for newly created files"],
+        ["setfacl -m u:alice:rw file  /  getfacl file", "Per-user ACLs when plain rwx isn't enough"],
+        ["sudo find / -perm -4000 -type f 2>/dev/null", "List setuid binaries — a security-audit staple"]
+      ]},
+    { title: "Storage & system info",
+      rows: [
+        ["df -h", "Free space per filesystem"],
+        ["lsblk", "Block device tree — find that new disk"],
+        ["du -sh * | sort -h", "Biggest items in the current directory"],
+        ["sudo mount /dev/sdb1 /mnt  /  umount /mnt", "Mount / unmount"],
+        ["findmnt  /  sudo mount -a", "Verify mounts / apply /etc/fstab after editing it"],
+        ["sudo lsof +D /mnt", "Which process is keeping a filesystem busy"],
+        ["free -h  /  lscpu  /  nproc", "RAM / CPU details / core count"],
+        ["uptime  /  uname -a", "Load average / kernel and architecture"]
+      ]},
+    { title: "Cron",
+      rows: [
+        ["crontab -e  /  -l  /  -r", "Edit / list / DELETE your jobs — -r has no undo"],
+        ["sudo crontab -l -u alice", "Another user's crontab"],
+        ["/etc/crontab  and  /etc/cron.d/*", "System-wide jobs — the format adds a user column"],
+        ["*/5 * * * * /abs/path.sh >> /var/log/x.log 2>&1", "Every 5 minutes, with logging"],
+        ["@daily / @hourly / @reboot", "Macros — @reboot runs once after each boot"],
+        ["grep CRON /var/log/syslog", "Debian/Ubuntu: did cron actually fire?"],
+        ["Better alternative", "systemd timers handle missed runs and dependencies — see the systemd sheet"]
+      ]},
+    { title: "Crontab examples",
+      rows: [[ "Field order: minute hour day-of-month month day-of-week", "See block below" ]],
+      code:
+"# ┌──────── minute (0-59)\n" +
+"# │ ┌────── hour (0-23)\n" +
+"# │ │ ┌──── day of month (1-31)\n" +
+"# │ │ │ ┌── month (1-12)\n" +
+"# │ │ │ │ ┌ day of week (0-7, both 0 and 7 = Sunday)\n" +
+" */5 * * * *  /usr/local/bin/healthcheck.sh   # every 5 minutes\n" +
+" 0   3 * * *  /usr/local/bin/backup.sh       # daily at 03:00\n" +
+" 30  4 * * 1  /usr/local/bin/weekly.sh       # Mondays at 04:30\n" +
+" 0   0 1 * *  /usr/local/bin/monthly.sh      # 1st of the month\n" +
+" @reboot       /usr/local/bin/boot.sh        # once per boot"
+    }
+  ]
+}
+];
+
+/* ============ RENDERING ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+
+function hl(text, q){
+  const t = esc(text);
+  if(!q) return t;
+  try { return t.replace(new RegExp(esc(escRe(q)), "gi"), m => "<mark>" + m + "</mark>"); }
+  catch(e) { return t; }
+}
+
+let current = localStorage.getItem("cs.sheet");
+if(!SHEETS.some(s => s.id === current)) current = "terminal";
+
+const select = $("#sheet-select");
+const groups = {};
+SHEETS.forEach(s => (groups[s.group] = groups[s.group] || []).push(s));
+for(const g of Object.keys(groups)){
+  const og = document.createElement("optgroup"); og.label = g;
+  groups[g].forEach(s => {
+    const o = document.createElement("option");
+    o.value = s.id; o.textContent = s.icon + "  " + s.label;
+    og.appendChild(o);
+  });
+  select.appendChild(og);
+}
+select.value = current;
+
+function render(){
+  const sheet = SHEETS.find(s => s.id === current);
+  document.documentElement.style.setProperty("--accent", sheet.accent);
+  document.title = sheet.label + " — Cheatsheet";
+  const q = $("#search").value.trim();
+  const lq = q.toLowerCase();
+
+  let html = "";
+  if(sheet.notes){
+    html += '<div class="notes"><ul>' + sheet.notes.map(n => "<li>" + hl(n,q) + "</li>").join("") + "</ul></div>";
+  }
+
+  let shown = 0, total = 0, sectionsShown = 0;
+  for(const sec of sheet.sections){
+    total += sec.rows.length;
+    const rows = sec.rows.filter(r => !q ||
+      String(r[0]).toLowerCase().includes(lq) || String(r[1]).toLowerCase().includes(lq));
+    if(q && rows.length === 0) continue;
+    sectionsShown++; shown += rows.length;
+    html += '<section class="card"><h2>' + hl(sec.title,q) + "</h2>";
+    if(sec.intro) html += '<p class="intro">' + hl(sec.intro,q) + "</p>";
+    html += "<table><thead><tr><th>Key / Command</th><th>What it does</th></tr></thead><tbody>";
+    for(const r of rows){
+      html += '<tr><td class="k"><code>' + hl(r[0],q) + "</code></td><td>" + hl(r[1],q) + "</td></tr>";
+    }
+    html += "</tbody></table>";
+    if(sec.code) html += "<pre>" + esc(sec.code) + "</pre>";
+    html += "</section>";
+  }
+  if(q && shown === 0){
+    html = '<div class="notes"><ul><li>No matches — the search covers keys and descriptions of this sheet only.</li></ul></div>' +
+           '<p class="empty">Nothing found for “' + esc(q) + "” in " + esc(sheet.label) + "</p>";
+  }
+  $("#content").innerHTML = html;
+  $("#blurb").textContent = sheet.blurb;
+  $("#meta").textContent = q
+    ? shown + (shown === 1 ? " match" : " matches") + " for “" + q + "” · " + sheet.label
+    : sheet.sections.length + " sections · " + total + " entries · " + sheet.label;
+}
+
+select.addEventListener("change", () => {
+  current = select.value;
+  localStorage.setItem("cs.sheet", current);
+  $("#search").value = "";
+  render();
+});
+
+$("#search").addEventListener("input", render);
+$("#search").addEventListener("keydown", e => {
+  if(e.key === "Escape"){ $("#search").value = ""; $("#search").blur(); render(); }
+});
+
+window.addEventListener("keydown", e => {
+  if(e.key === "/" && !["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)){
+    e.preventDefault(); $("#search").focus();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
