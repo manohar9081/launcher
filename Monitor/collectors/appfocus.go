@@ -2,6 +2,7 @@
 // changes.
 //
 //   - macOS:   `lsappinfo front` + `lsappinfo info -only name <ASN>`
+//     (the name is parsed from the dump output; see parseLsAppName)
 //   - Windows: PowerShell GetForegroundWindow loop
 //   - Linux:   xdotool (X11) if installed, otherwise unavailable
 //
@@ -21,7 +22,39 @@ import (
 	"monitor"
 )
 
-var reLsAppName = regexp.MustCompile(`="?([^"\n]+)"?`)
+var (
+	reLsQuotedToken = regexp.MustCompile(`"([^"]*)"`)
+	reLsNameKV      = regexp.MustCompile(`name="?([^"\n]+)"?`)
+)
+
+// parseLsAppName extracts the front app name from `lsappinfo info -only
+// name <ASN>` output. Current macOS builds ignore the `-only name` filter
+// and dump the full app record, so only the first line is considered: its
+// first double-quoted token is the app name (`"AppName" ASN:0x0-0xNNNN:
+// (in front)`). Older builds print a one-liner `name="AppName"` instead.
+// Returns "" when nothing matches, when the first line is empty, or when
+// lsappinfo reported the `[ NULL ]` placeholder it uses for apps without
+// LaunchServices attributes.
+func parseLsAppName(out string) string {
+	first := out
+	if i := strings.IndexByte(first, '\n'); i >= 0 {
+		first = first[:i]
+	}
+	first = strings.TrimSpace(first)
+	if first == "" {
+		return ""
+	}
+	name := ""
+	if m := reLsQuotedToken.FindStringSubmatch(first); m != nil {
+		name = m[1]
+	} else if m := reLsNameKV.FindStringSubmatch(first); m != nil {
+		name = strings.Trim(strings.TrimSpace(m[1]), `"`)
+	}
+	if name == "" || name == "[ NULL ]" {
+		return ""
+	}
+	return name
+}
 
 // focusScript is the persistent PowerShell that prints the focused process
 // name whenever it changes.
@@ -128,11 +161,7 @@ func (c *AppFocusCollector) frontApp() string {
 		if rc != 0 {
 			return ""
 		}
-		m := reLsAppName.FindStringSubmatch(out)
-		if m == nil {
-			return ""
-		}
-		return strings.TrimSpace(m[1])
+		return parseLsAppName(out)
 	case "windows":
 		return c.frontAppWindows()
 	default:
