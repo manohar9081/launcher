@@ -1,3 +1,20 @@
 Launcher/.DS_Store
 .DS_Store
 /Launcher/logs
+/Launcher/launcher
+/Launcher/launcher.exe
+/Launcher/state.json
+/Monitor/monitor
+/Monitor/monitor.exe
+/Monitor/data/*.db
+
+# Compiled application binaries (including sibling apps copied into this tree)
+*.exe
+*.out
+**/launcher
+**/monitor
+**/static-server
+**/lawbuddy
+**/vedic
+**/invest-server
+**/studyapp
