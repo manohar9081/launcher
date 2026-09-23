@@ -5,7 +5,6 @@ A faithful Go (stdlib-only) port of the Python launcher:
 | Python source | Go source |
 |---|---|
 | `../server.py` (581 lines) | `main.go` (+ `sys_windows.go` / `sys_unix.go` for process/syscall bits) |
-| `../test_api.py` (API end-to-end test) | `server_test.go` |
 
 The HTTP surface is unchanged:
 
@@ -80,21 +79,6 @@ the console window, the launcher stops every app *it started* (tracked in
 left alone. Windows gives a console ~5 s on window close, so with many apps
 running at once a force-closed window may finish only some of the stops — the
 dashboard Stop buttons / `POST /api/stop` remain the reliable path.
-
-## Tests
-
-```bash
-cd Launcher
-go test ./...
-```
-
-`test_api.py` required a live server on `127.0.0.1:9090` plus the 11 real apps of the author's machine. The Go port keeps every check but runs **in-process** (`httptest.NewServer(NewServer(cfg))`) against a synthetic `apps.json` in a temp dir — no external server or real apps needed. The "apps" are instances of the test binary itself, re-executed in helper mode (`LAUNCHER_HELPER=1` + `PORT=…` via `TestMain`), standing in for `python -m http.server`; one helper is started *outside* the launcher to exercise external detection and the external stop path exactly like the Python `mlops` section.
-
-Adapted checks (noted inline in the test):
-- app counts/ports come from the synthetic registry (3 Wi-Fi apps + 1 local) instead of the author's 11-app registry;
-- the hard-coded `http://192.168.*` LAN assertion now verifies each Wi-Fi app's `lanUrl` against the machine's LAN as reported by `/api/health`, and is skipped offline;
-- the `vedic`/`monitor` "already running externally" preconditions are provided by the self-spawned helper;
-- page-load checks additionally assert the helper received the injected `PORT` and `{port}`-substituted env.
 
 ## Deviations from server.py
 
