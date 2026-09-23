@@ -9,9 +9,10 @@
       "category": "Reference",
       "dir": "../Cheatsheet",
       "port": 8000,
-      "cmd": "python -m http.server {port} --bind 0.0.0.0",
+      "cmd": "",
       "urlPath": "/",
-      "network": true
+      "network": true,
+      "servedBy": "launcher"
     },
     {
       "id": "mlops",
@@ -21,9 +22,10 @@
       "category": "Reference",
       "dir": "../MLOPS",
       "port": 8137,
-      "cmd": "python -m http.server {port} --bind 0.0.0.0",
+      "cmd": "",
       "urlPath": "/",
-      "network": true
+      "network": true,
+      "servedBy": "launcher"
     },
     {
       "id": "monitor",
@@ -34,7 +36,11 @@
       "dir": "../Monitor",
       "port": 8765,
       "binary": "../Monitor/monitor",
-      "args": ["--port", "{port}"],
+      "args": [
+        "--port",
+        "{port}"
+      ],
+      "cmd": "",
       "urlPath": "/",
       "network": false
     }

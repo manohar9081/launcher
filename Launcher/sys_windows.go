@@ -22,6 +22,34 @@ import (
 // (not exported by Go's syscall package).
 const createNoWindow = 0x08000000
 
+// hideWindow keeps helper commands (tasklist, netstat, powershell, the
+// browser opener, go build) from flashing a console window. It matters most in
+// the windowsgui build, where the launcher itself has no console and every
+// console child would otherwise allocate a visible one.
+func hideWindow(cmd *exec.Cmd) {
+	if cmd.SysProcAttr == nil {
+		cmd.SysProcAttr = &syscall.SysProcAttr{}
+	}
+	cmd.SysProcAttr.CreationFlags |= createNoWindow
+}
+
+// showErrorMessage surfaces fatal startup errors in the windowsgui build,
+// where there is no console to print them to. No-op cost in console builds.
+func showErrorMessage(title, msg string) {
+	user32 := syscall.NewLazyDLL("user32.dll")
+	box := user32.NewProc("MessageBoxW")
+	tptr, err := syscall.UTF16PtrFromString(title)
+	if err != nil {
+		return
+	}
+	mptr, err := syscall.UTF16PtrFromString(msg)
+	if err != nil {
+		return
+	}
+	// HWND 0, MB_ICONERROR (0x10) — fire and forget.
+	_, _, _ = box.Call(0, uintptr(unsafe.Pointer(mptr)), uintptr(unsafe.Pointer(tptr)), 0x10)
+}
+
 // processSysProcAttr keeps managed apps out of the launcher's console and in
 // their own process group; closing the launcher console must not deliver
 // CTRL_CLOSE_EVENT to the apps (Python _app_creationflags).
@@ -138,6 +166,7 @@ func procCmdline(pid int) string {
 // spawn failures (Python OSError).
 func runTaskkill(args ...string) error {
 	cmd := exec.Command("taskkill", args...)
+	hideWindow(cmd)
 	cmd.Stdout = io.Discard
 	cmd.Stderr = io.Discard
 	err := cmd.Run()

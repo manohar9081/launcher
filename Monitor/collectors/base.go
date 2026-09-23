@@ -134,6 +134,8 @@ func (b *BaseCollector) Start() {
 
 // Stop signals the run loop to exit, kills any subprocess it spawned and
 // waits up to 3 seconds (mirrors base.stop with thread.join(timeout=3)).
+// When the goroutine has exited, running is cleared so a later Start()
+// (dashboard re-enable) relaunches it.
 func (b *BaseCollector) Stop() {
 	b.mu.Lock()
 	ch, done := b.stopCh, b.done
@@ -146,7 +148,12 @@ func (b *BaseCollector) Stop() {
 	if done != nil {
 		select {
 		case <-done:
+			b.mu.Lock()
+			b.running = false
+			b.mu.Unlock()
 		case <-time.After(3 * time.Second):
+			// stuck run loop: keep running set so a second Start() cannot
+			// spawn a duplicate goroutine next to the stuck one
 		}
 	}
 }

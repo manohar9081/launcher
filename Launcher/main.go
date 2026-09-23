@@ -62,7 +62,8 @@ type Config struct {
 	// with server.py, which defines it but never uses it.
 	ProjectRoot string
 	// Root is the directory holding apps.json, index.html, state.json and logs/
-	// (Python ROOT — the directory containing server.py).
+	// (Python ROOT — the directory containing server.py). In single-file builds
+	// it is the data directory instead.
 	Root      string
 	AppsFile  string
 	StateFile string
@@ -70,11 +71,29 @@ type Config struct {
 	IndexFile string
 	Host      string
 	Port      int
+	// DataDir is where the single-file build unpacks app binaries, assets,
+	// logs and state (empty in folder mode).
+	DataDir string
 }
 
 // DefaultConfig resolves paths relative to the executable or working
-// directory. LAUNCHER_ROOT overrides it for packaged deployments.
+// directory. LAUNCHER_ROOT overrides it for packaged deployments. In
+// single-file builds everything lives under a per-user data directory
+// (LAUNCHER_DATA_DIR overrides) so nothing is written next to the exe.
 func DefaultConfig() Config {
+	if embeddedBuild {
+		dataDir := defaultDataDir()
+		return Config{
+			Root:      dataDir,
+			DataDir:   dataDir,
+			AppsFile:  "", // packed inside the executable
+			StateFile: filepath.Join(dataDir, "state.json"),
+			LogDir:    filepath.Join(dataDir, "logs"),
+			IndexFile: "", // served from the embedded dashboard
+			Host:      envOr("HOST", "0.0.0.0"),
+			Port:      envInt("PORT", 9090),
+		}
+	}
 	root := sourceDir()
 	if v := os.Getenv("LAUNCHER_ROOT"); v != "" {
 		root = v
@@ -144,6 +163,7 @@ type App struct {
 	Args     []string          `json:"args,omitempty"`
 	Network  bool              `json:"network"`
 	Env      map[string]string `json:"env,omitempty"`
+	ServedBy string            `json:"servedBy,omitempty"` // "launcher" = HTML app hosted in-process (single-file build)
 	RawDir   string            `json:"dir"`
 	Dir      string            `json:"-"` // resolved absolute dir (Python "_dir")
 }
@@ -164,6 +184,10 @@ type Server struct {
 	byID     map[string]*App
 	mu       sync.Mutex
 	inflight map[string]struct{}
+	// hostedListeners holds the in-process HTTP listeners of HTML apps hosted
+	// inside the launcher itself (from the embed in single-file builds, from
+	// the app's disk folder in dev).
+	hostedListeners map[string]net.Listener
 }
 
 // NewServer loads apps.json and returns a handler serving the launcher API.
@@ -173,10 +197,11 @@ func NewServer(cfg Config) (*Server, error) {
 		return nil, err
 	}
 	return &Server{
-		cfg:      cfg,
-		apps:     apps,
-		byID:     byID,
-		inflight: make(map[string]struct{}),
+		cfg:               cfg,
+		apps:              apps,
+		byID:              byID,
+		inflight:          make(map[string]struct{}),
+		hostedListeners: make(map[string]net.Listener),
 	}, nil
 }
 
@@ -184,7 +209,15 @@ func loadApps(cfg Config) ([]*App, map[string]*App, error) {
 	var parsed struct {
 		Apps []*App `json:"apps"`
 	}
-	if data, err := os.ReadFile(cfg.AppsFile); err == nil {
+	if embeddedBuild {
+		data, err := embeddedConfigJSON()
+		if err != nil {
+			return nil, nil, err
+		}
+		if err := json.Unmarshal(data, &parsed); err != nil {
+			return nil, nil, fmt.Errorf("embedded apps.json: %w", err)
+		}
+	} else if data, err := os.ReadFile(cfg.AppsFile); err == nil {
 		if err := json.Unmarshal(data, &parsed); err != nil {
 			return nil, nil, err
 		}
@@ -195,6 +228,7 @@ func loadApps(cfg Config) ([]*App, map[string]*App, error) {
 		parsed.Apps = []*App{}
 	}
 	byID := make(map[string]*App, len(parsed.Apps))
+	kept := make([]*App, 0, len(parsed.Apps))
 	for _, a := range parsed.Apps {
 		if a == nil || a.ID == "" {
 			return nil, nil, fmt.Errorf("%s: app entry missing \"id\"", cfg.AppsFile)
@@ -204,8 +238,21 @@ func loadApps(cfg Config) ([]*App, map[string]*App, error) {
 		}
 		byID[a.ID] = a
 
+		// Apps hosted inside the launcher: in the single-file build they have
+		// no folder (assets come from the exe); in folder mode they serve
+		// straight from their disk folder.
+		if a.ServedBy == "launcher" && embeddedBuild {
+			a.Dir = ""
+			kept = append(kept, a)
+			continue
+		}
+
 		// Python: a["_dir"] = (ROOT / a["dir"]).resolve()
-		dir := filepath.Join(cfg.Root, a.RawDir)
+		base := cfg.Root
+		if embeddedBuild {
+			base = cfg.DataDir // apps are unpacked into the data directory
+		}
+		dir := filepath.Join(base, a.RawDir)
 		if abs, err := filepath.Abs(dir); err == nil {
 			dir = abs
 		}
@@ -214,14 +261,23 @@ func loadApps(cfg Config) ([]*App, map[string]*App, error) {
 		}
 		a.Dir = dir
 		if info, err := os.Stat(dir); err != nil || !info.IsDir() {
-			return nil, nil, fmt.Errorf("app folder missing: %s", dir)
+			// Skip rather than fail: one missing folder should not take down
+			// the whole launcher (matters in trimmed release bundles too).
+			fmt.Fprintf(os.Stderr, "launcher: warning: skipping app %q — folder missing: %s\n", a.ID, dir)
+			delete(byID, a.ID)
+			continue
 		}
+		kept = append(kept, a)
 	}
-	discovered, err := discoverApps(cfg, byID, parsed.Apps)
+	if embeddedBuild {
+		// The exe is self-contained; never scan the user's folders.
+		return kept, byID, nil
+	}
+	discovered, err := discoverApps(cfg, byID, kept)
 	if err != nil {
 		return nil, nil, err
 	}
-	return append(parsed.Apps, discovered...), byID, nil
+	return append(kept, discovered...), byID, nil
 }
 
 // discoverApps adds simple static web projects that are present beside the
@@ -246,7 +302,7 @@ func discoverApps(cfg Config, byID map[string]*App, configured []*App) ([]*App, 
 	nextPort := 9000
 	var discovered []*App
 	for _, entry := range entries {
-		if !entry.IsDir() || entry.Name() == "Launcher" || entry.Name() == "StaticServer" ||
+		if !entry.IsDir() || entry.Name() == "Launcher" ||
 			strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
@@ -273,16 +329,17 @@ func discoverApps(cfg Config, byID map[string]*App, configured []*App) ([]*App, 
 			ID: id, Name: entry.Name(), Icon: "📦",
 			Desc:     "Discovered static web app",
 			Category: "Discovered", Port: nextPort, URLPath: "/",
-			Binary: "../StaticServer/static-server",
-			Args:   []string{"--root", rawDir, "--port", "{port}", "--host", "0.0.0.0"},
 			RawDir: rawDir, Network: true, Dir: dir,
 		}
 		if kind == "go" {
 			app.Binary = rawDir + "/" + id + "-launcher"
 			app.Args = []string{}
 			app.Desc = "Discovered Go app"
-		} else if entrypoint != "index.html" {
-			app.URLPath = "/" + entrypoint
+		} else {
+			app.ServedBy = "launcher" // hosted in-process, from its folder
+			if entrypoint != "index.html" {
+				app.URLPath = "/" + entrypoint
+			}
 		}
 		byID[id] = app
 		usedPorts[nextPort] = true
@@ -467,7 +524,9 @@ func portOpen(port int, timeout time.Duration) bool {
 func runCommand(timeout time.Duration, name string, args ...string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, name, args...).Output()
+	cmd := exec.CommandContext(ctx, name, args...)
+	hideWindow(cmd) // no console flash for tasklist/netstat/powershell helpers
+	out, err := cmd.Output()
 	return string(out), err
 }
 
@@ -566,9 +625,13 @@ type allResp struct {
 }
 
 type healthResp struct {
-	OK     bool    `json:"ok"`
-	Lan    *string `json:"lan"`
-	LanURL *string `json:"lanUrl"`
+	OK      bool    `json:"ok"`
+	Lan     *string `json:"lan"`
+	LanURL  *string `json:"lanUrl"`
+	Mode    string  `json:"mode,omitempty"`    // "single-file" in embed builds
+	DataDir string  `json:"dataDir,omitempty"` // where extracted apps live (embed builds)
+	Window  string  `json:"window,omitempty"`  // "native" | "app" | "browser" | "none"
+	OS      string  `json:"os,omitempty"`      // runtime.GOOS, e.g. "windows"
 }
 
 type logsResp struct {
@@ -599,6 +662,9 @@ func (s *Server) startApp(a *App) *actionResp {
 }
 
 func (s *Server) startAppLocked(a *App) *actionResp {
+	if a.ServedBy == "launcher" {
+		return s.startHostedStatic(a)
+	}
 	if portOpen(a.Port, defaultProbeTimeout) {
 		return &actionResp{OK: true, AlreadyRunning: true}
 	}
@@ -666,21 +732,105 @@ func (s *Server) startAppLocked(a *App) *actionResp {
 	return &actionResp{OK: true, PID: &pid, Slow: true, Note: note}
 }
 
+// startHostedStatic hosts an HTML app inside the launcher process: no child
+// process, the port is served from the embedded assets (single-file build)
+// or straight from the app's disk folder (dev build).
+func (s *Server) startHostedStatic(a *App) *actionResp {
+	if portOpen(a.Port, defaultProbeTimeout) {
+		return &actionResp{OK: true, AlreadyRunning: true}
+	}
+	handler, err := staticHandlerFor(a)
+	if err != nil {
+		return &actionResp{OK: false, Error: err.Error()}
+	}
+	if err := os.MkdirAll(s.cfg.LogDir, 0o755); err != nil {
+		return &actionResp{OK: false, Error: err.Error()}
+	}
+	if logFile, err := os.OpenFile(s.logPath(a), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644); err == nil {
+		fmt.Fprintf(logFile, "\n===== started %s (hosted inside launcher.exe) =====\n",
+			time.Now().Format("2006-01-02 15:04:05"))
+		logFile.Close()
+	}
+	host := "127.0.0.1"
+	if a.Network {
+		host = "0.0.0.0"
+	}
+	ln, err := net.Listen("tcp", net.JoinHostPort(host, strconv.Itoa(a.Port)))
+	if err != nil {
+		return &actionResp{OK: false, Error: err.Error()}
+	}
+	pid := os.Getpid()
+	s.mu.Lock()
+	s.hostedListeners[a.ID] = ln
+	st := loadState(s.cfg.StateFile)
+	st[a.ID] = stateEntry{PID: pid, StartedAt: float64(time.Now().UnixNano()) / 1e9}
+	saveState(s.cfg.StateFile, st)
+	s.mu.Unlock()
+	go func() {
+		srv := &http.Server{Handler: handler, ReadHeaderTimeout: 10 * time.Second}
+		_ = srv.Serve(ln) // returns when the app is stopped or the launcher exits
+	}()
+	return &actionResp{OK: true, PID: &pid}
+}
+
+// stopHostedStatic closes the in-process listener of a hosted HTML app.
+func (s *Server) stopHostedStatic(a *App) *actionResp {
+	s.mu.Lock()
+	ln := s.hostedListeners[a.ID]
+	delete(s.hostedListeners, a.ID)
+	st := loadState(s.cfg.StateFile)
+	delete(st, a.ID)
+	saveState(s.cfg.StateFile, st)
+	s.mu.Unlock()
+	if ln != nil {
+		ln.Close()
+	}
+	for i := 0; i < 10; i++ {
+		if !portOpen(a.Port, startProbeTimeout) {
+			still := false
+			killed := []int{}
+			return &actionResp{OK: true, Killed: &killed, StillRunning: &still}
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	// Port still held after our listener closed → someone else's process; use
+	// the ordinary external-kill path so Stop stays trustworthy.
+	killed := []int{}
+	for _, p := range listenerPIDs(a.Port) {
+		if killProc(p) == nil {
+			killed = append(killed, p)
+		}
+	}
+	for i := 0; i < stopWaitRounds; i++ {
+		if !portOpen(a.Port, startProbeTimeout) {
+			break
+		}
+		time.Sleep(stopWaitSleep)
+	}
+	still := portOpen(a.Port, startProbeTimeout)
+	return &actionResp{OK: !still, Killed: &killed, StillRunning: &still}
+}
+
 func resolveBinary(root, configured string) (string, error) {
+	if embeddedBuild {
+		// Packaged binaries are unpacked into <data>/bin; the packaged name
+		// carries no extension, Windows needs .exe.
+		path := filepath.Join(root, "bin", embeddedBinaryName(configured))
+		if !fileExists(path) {
+			return "", fmt.Errorf("packaged binary missing: %s", path)
+		}
+		if err := ensureExecutable(path); err != nil {
+			return "", fmt.Errorf("make binary executable: %s: %v", path, err)
+		}
+		return path, nil
+	}
 	path := configured
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(root, path)
 	}
 	path, _ = filepath.Abs(path)
-	candidates := make([]string, 0, 5)
-	candidates = append(candidates,
-		path+"-"+runtime.GOOS+"-"+runtime.GOARCH,
-		path+"-"+runtime.GOOS+"-"+runtime.GOARCH+".exe",
-	)
-	if runtime.GOOS == "windows" && filepath.Ext(path) == "" {
-		candidates = append(candidates, path+".exe")
-	}
-	candidates = append(candidates, path)
+	platformPath := platformBinaryPath(path)
+	candidates := []string{platformPath}
 	for _, candidate := range candidates {
 		if fileExists(candidate) {
 			if err := ensureExecutable(candidate); err != nil {
@@ -689,11 +839,19 @@ func resolveBinary(root, configured string) (string, error) {
 			return candidate, nil
 		}
 	}
-	if built, err := buildGoBinary(path); err == nil {
+	if built, err := buildGoBinary(platformPath); err == nil {
 		return built, nil
 	} else {
 		return "", fmt.Errorf("Go app binary not found: %s (looked in %s; automatic build failed: %v)", configured, strings.Join(candidates, ", "), err)
 	}
+}
+
+func platformBinaryPath(path string) string {
+	suffixed := path + "-" + runtime.GOOS + "-" + runtime.GOARCH
+	if runtime.GOOS == "windows" {
+		suffixed += ".exe" // Windows needs the extension to execute reliably
+	}
+	return suffixed
 }
 
 // buildGoBinary builds an app on first use when its platform binary is absent.
@@ -723,10 +881,8 @@ func buildGoBinary(output string) (string, error) {
 		buildTarget = entrypoints[0]
 	}
 
-	if runtime.GOOS == "windows" && filepath.Ext(output) == "" {
-		output += ".exe"
-	}
 	cmd := exec.Command("go", "build", "-o", output, buildTarget)
+	hideWindow(cmd)
 	cmd.Dir = moduleDir
 	if outputText, err := cmd.CombinedOutput(); err != nil {
 		message := strings.TrimSpace(string(outputText))
@@ -806,6 +962,9 @@ func (s *Server) stopApp(a *App) *actionResp {
 }
 
 func (s *Server) stopAppLocked(a *App) *actionResp {
+	if a.ServedBy == "launcher" {
+		return s.stopHostedStatic(a)
+	}
 	st := loadState(s.cfg.StateFile)
 	pid := st[a.ID].PID
 	killed := []int{}
@@ -932,6 +1091,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request) {
 	case r.Method == http.MethodGet && (path == "/" || path == "/index.html"):
 		s.serveIndex(w)
 	case r.Method == http.MethodGet && path == "/api/apps":
+		noteActivity()
 		s.mu.Lock()
 		st := loadState(s.cfg.StateFile)
 		s.mu.Unlock()
@@ -941,14 +1101,65 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request) {
 		}
 		s.writeJSON(w, http.StatusOK, statuses)
 	case r.Method == http.MethodGet && path == "/api/health":
+		noteActivity()
 		var out healthResp
 		out.OK = true
+		if embeddedBuild {
+			out.Mode = "single-file"
+			out.DataDir = s.cfg.DataDir
+		}
+		out.Window = launchWindow
+		out.OS = runtime.GOOS
 		if lan := lanIP(); lan != "" {
 			out.Lan = &lan
 			u := fmt.Sprintf("http://%s:%d", lan, s.cfg.Port)
 			out.LanURL = &u
 		}
 		s.writeJSON(w, http.StatusOK, out)
+	case r.Method == http.MethodPost && path == "/api/heartbeat":
+		// Dashboard keepalive; ?bye=1 is the pagehide beacon sent when the
+		// last dashboard window/tab goes away (window mode shuts down then).
+		noteActivity()
+		if parseQuery(r.RequestURI)["bye"] == "1" {
+			handleBye(s)
+		}
+		s.writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+	case r.Method == http.MethodPost && path == "/api/shutdown":
+		// Explicit quit from the dashboard. Loopback only — a device on the
+		// Wi-Fi may stop apps but not kill the launcher itself.
+		if !isLoopback(r.Host) {
+			s.writeJSON(w, http.StatusForbidden, map[string]string{"error": "shutdown is only allowed from this computer"})
+			return
+		}
+		s.writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+		time.AfterFunc(300*time.Millisecond, func() { s.beginShutdown("quit requested from the dashboard") })
+	case r.Method == http.MethodPost && path == "/api/open":
+		// Open a URL on this computer (tab mode from the native window: the
+		// WebView2 window has no tabs, so the app lands in the default
+		// browser instead). Loopback only.
+		if !isLoopback(r.Host) {
+			s.writeJSON(w, http.StatusForbidden, map[string]string{"error": "open is only allowed from this computer"})
+			return
+		}
+		var req openRequest
+		readBodyInto(r, &req)
+		u := strings.TrimSpace(req.URL)
+		if !strings.HasPrefix(u, "http://127.0.0.1") && !strings.HasPrefix(u, "http://[::1]") &&
+			!strings.HasPrefix(u, "https://") {
+			s.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unsupported url"})
+			return
+		}
+		openBrowser(u)
+		s.writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+	case r.Method == http.MethodPost && path == "/api/firewall":
+		// One-click fix for the per-app Windows Firewall "Allow/Cancel"
+		// popups: adds allow-rules for the launcher and every network app via
+		// a single UAC elevation. Windows only; loopback only.
+		if !isLoopback(r.Host) {
+			s.writeJSON(w, http.StatusForbidden, map[string]string{"error": "firewall fix is only allowed from this computer"})
+			return
+		}
+		s.writeJSON(w, http.StatusOK, s.firewallFix())
 	case r.Method == http.MethodGet && path == "/api/logs":
 		s.serveLogs(w, r.RequestURI)
 	case r.Method == http.MethodGet && path == "/favicon.ico":
@@ -981,8 +1192,13 @@ func (s *Server) writeJSON(w http.ResponseWriter, code int, v any) {
 }
 
 func (s *Server) serveIndex(w http.ResponseWriter) {
-	body, err := os.ReadFile(s.cfg.IndexFile)
-	if err != nil {
+	body := []byte(nil)
+	if embeddedBuild {
+		body = embeddedIndexHTML
+	} else {
+		body, _ = os.ReadFile(s.cfg.IndexFile)
+	}
+	if len(body) == 0 {
 		s.writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "index.html missing"})
 		return
 	}
@@ -1029,18 +1245,34 @@ type idRequest struct {
 	ID string `json:"id"`
 }
 
-// readBody mirrors Python _body(): no Content-Length or invalid JSON → {}.
-func readBody(r *http.Request) idRequest {
-	var out idRequest
+type openRequest struct {
+	URL string `json:"url"`
+}
+
+// isLoopback reports whether the request came from this computer (Host is
+// 127.0.0.1[:port] or [::1][:port]).
+func isLoopback(host string) bool {
+	return strings.HasPrefix(host, "127.0.0.1") || strings.HasPrefix(host, "[::1]")
+}
+
+// readBodyInto mirrors Python _body(): no Content-Length or invalid JSON →
+// leave v untouched.
+func readBodyInto(r *http.Request, v any) {
 	n, err := strconv.Atoi(strings.TrimSpace(r.Header.Get("Content-Length")))
 	if err != nil || n <= 0 {
-		return out
+		return
 	}
 	data, err := io.ReadAll(io.LimitReader(r.Body, int64(n)))
 	if err != nil && len(data) == 0 {
-		return out
+		return
 	}
-	_ = json.Unmarshal(data, &out)
+	_ = json.Unmarshal(data, v)
+}
+
+// readBody mirrors the Python handler's ad-hoc parser for {id} bodies.
+func readBody(r *http.Request) idRequest {
+	var out idRequest
+	readBodyInto(r, &out)
 	return out
 }
 
@@ -1089,17 +1321,36 @@ func (s *Server) serveAll(w http.ResponseWriter, start bool) {
 
 // ------------------------------------------------------------------- main ----
 
+// launchWindow records how the dashboard was opened — "native" (own WebView2
+// window), "app" (Edge/Chrome app window), "browser" or "none" — and is
+// reported by /api/health so the page can adapt (e.g. tab-mode Open requests
+// route through /api/open to land in the PC's default browser as a tab).
+var launchWindow = "none"
+
 func main() {
 	cfg := DefaultConfig()
-	if portOpen(cfg.Port, startProbeTimeout) {
-		fmt.Printf("X Port %d is already in use - is the launcher already running?\n", cfg.Port)
-		fmt.Printf("  Open http://127.0.0.1:%d or stop the other process first.\n", cfg.Port)
+	if guiBuild {
+		// windowsgui builds have no console; keep the output for launcher.log.
+		redirectOutputToLog(cfg.LogDir)
+	}
+	fail := func(msg string) {
+		fmt.Fprintln(os.Stderr, msg)
+		showErrorMessage("Project Launcher", msg) // no-op off Windows
 		os.Exit(1)
+	}
+	if embeddedBuild {
+		// Unpack the carried apps before anything references them.
+		if err := extractEmbedded(cfg.DataDir); err != nil {
+			fail("unpacking apps failed: " + err.Error())
+		}
+	}
+	if portOpen(cfg.Port, startProbeTimeout) {
+		fail(fmt.Sprintf("Port %d is already in use - is the launcher already running?\n"+
+			"Open http://127.0.0.1:%d or stop the other process first.", cfg.Port, cfg.Port))
 	}
 	srv, err := NewServer(cfg)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		fail(err.Error())
 	}
 
 	url := fmt.Sprintf("http://127.0.0.1:%d", cfg.Port)
@@ -1114,16 +1365,36 @@ func main() {
 	fmt.Printf("  Apps      : %d configured - start & stop them from the page\n", len(srv.apps))
 	startAppsFlag := slices.Contains(os.Args, "--start-apps")
 	killOnExit := slices.Contains(os.Args, "--kill-apps-on-exit")
+	windowMode := guiBuild // release builds behave like an app: window closed = done
+	if slices.Contains(os.Args, "--no-window") {
+		windowMode = false
+	}
+	if slices.Contains(os.Args, "--window") {
+		windowMode = true
+	}
+	noOpen := os.Getenv("NO_OPEN") == "1" || slices.Contains(os.Args, "--no-open")
+	useBrowser := slices.Contains(os.Args, "--browser") // skip the native window
+	// The native window is the release experience on Windows: a real Win32
+	// window (WebView2) whose close button quits the application.
+	nativeWindow := guiBuild && windowMode && !useBrowser && !noOpen
 	if startAppsFlag {
 		fmt.Println("            (--start-apps given: starting every stopped app now)")
 	}
-	if killOnExit {
+	switch {
+	case nativeWindow:
+		fmt.Println("            (native window: closing it stops the launcher and its apps)")
+	case windowMode:
+		fmt.Println("            (window mode: closing the dashboard stops the launcher and its apps)")
+	case killOnExit:
 		fmt.Println("            (--kill-apps-on-exit: apps started by this panel stop when it exits)")
-	} else {
-		fmt.Println("            (launching/quit this panel does NOT start or stop any app)")
+	default:
+		fmt.Println("            (launching/quitting this panel does NOT start or stop any app)")
 	}
-	if killOnExit {
-		fmt.Println("  Stop      : Ctrl+C / close window   (apps started by this panel stop too)")
+	if embeddedBuild {
+		fmt.Printf("  Data      : %s\n", cfg.DataDir)
+	}
+	if killOnExit || windowMode {
+		fmt.Println("  Stop      : close the dashboard / Ctrl+C   (apps started by this panel stop too)")
 	} else {
 		fmt.Println("  Stop      : Ctrl+C   (apps keep running)")
 	}
@@ -1139,15 +1410,21 @@ func main() {
 			}
 		})
 	}
-	if os.Getenv("NO_OPEN") != "1" && !slices.Contains(os.Args, "--no-open") {
-		time.AfterFunc(800*time.Millisecond, func() { openBrowser(url) })
+	if !nativeWindow && !noOpen {
+		open := openBrowser
+		if windowMode {
+			open = openAppWindow
+		}
+		time.AfterFunc(800*time.Millisecond, func() { open(url) })
+	}
+	if windowMode {
+		startWindowWatchdog(srv)
 	}
 
 	addr := net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		fail(err.Error())
 	}
 	httpSrv := &http.Server{Handler: srv}
 	serveErr := make(chan error, 1)
@@ -1155,19 +1432,44 @@ func main() {
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-interrupt
+		if windowMode || killOnExit {
+			srv.beginShutdown("Ctrl+C") // stops managed apps, then exits
+		}
+		fmt.Print("\n  Launcher stopped. (Apps keep running — stop them from the page next time.)\n")
+		os.Exit(0)
+	}()
+
+	if nativeWindow {
+		runtime.LockOSThread() // the WebView2 message loop owns this thread
+		launchWindow = "native"
+		dataPath := ""
+		if embeddedBuild {
+			dataPath = cfg.DataDir
+		}
+		if runNativeWindow(url, dataPath) {
+			// Window closed (or Terminate) → quit the application.
+			srv.beginShutdown("launcher window was closed")
+			return
+		}
+		// WebView2 runtime unavailable → chromeless Edge/Chrome window instead.
+		launchWindow = "app"
+		if !noOpen {
+			time.AfterFunc(200*time.Millisecond, func() { openAppWindow(url) })
+		}
+	} else if !noOpen {
+		if windowMode {
+			launchWindow = "app"
+		} else {
+			launchWindow = "browser"
+		}
+	}
+
 	select {
 	case err := <-serveErr:
 		if err != nil && err != http.ErrServerClosed {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-	case <-interrupt:
-		if killOnExit {
-			fmt.Print("\n  Launcher stopped - stopping the apps it started...\n")
-			srv.killAllApps()
-			fmt.Println("  All apps stopped.")
-		} else {
-			fmt.Print("\n  Launcher stopped. (Apps keep running — stop them from the page next time.)\n")
+			fail(err.Error())
 		}
 	}
 }
@@ -1183,5 +1485,6 @@ func openBrowser(url string) {
 	default:
 		cmd = exec.Command("xdg-open", url)
 	}
+	hideWindow(cmd) // `cmd /c start` would otherwise flash a console
 	_ = cmd.Start()
 }

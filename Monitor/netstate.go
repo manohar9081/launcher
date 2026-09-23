@@ -3,6 +3,7 @@
 package monitor
 
 import (
+	"strings"
 	"sync"
 )
 
@@ -62,8 +63,53 @@ func NewNetState(historyLen int) *NetState {
 	}
 }
 
-// UpdateConnections replaces the connection table.
+// connStateAliases maps every platform's spelling of a connection state to
+// the netstat-style long name the dashboard filters on. Keyed by the
+// upper-cased input with "-" and "_" stripped, so Linux `ss` ("ESTAB",
+// "FIN-WAIT-1"), Windows PowerShell ("SYNSENT", "TIMEWAIT") and macOS lsof
+// ("SYN_RCVD") all collapse onto one form. Without this, the dashboard's
+// state filter matches only Windows rows and Linux connections never show.
+var connStateAliases = map[string]string{
+	"ESTABLISHED": "ESTABLISHED",
+	"ESTAB":       "ESTABLISHED",
+	"SYNSENT":     "SYN_SENT",
+	"SYNRCVD":     "SYN_RECV",
+	"SYNRECV":     "SYN_RECV",
+	"SYNRECEIVED": "SYN_RECV",
+	"FINWAIT1":    "FIN_WAIT_1",
+	"FINWAIT2":    "FIN_WAIT_2",
+	"CLOSEWAIT":   "CLOSE_WAIT",
+	"CLOSING":     "CLOSING",
+	"LASTACK":     "LAST_ACK",
+	"TIMEWAIT":    "TIME_WAIT",
+	"LISTEN":      "LISTEN",
+	"UNCONN":      "UNCONN",
+	"CLOSED":      "CLOSED",
+	"BOUND":       "BOUND",
+}
+
+// NormalizeConnState canonicalises a collector-reported connection state
+// (unknown spellings pass through upper-cased).
+func NormalizeConnState(state string) string {
+	if state == "" {
+		return ""
+	}
+	compact := strings.NewReplacer("-", "", "_", "").Replace(strings.ToUpper(state))
+	if canon, ok := connStateAliases[compact]; ok {
+		return canon
+	}
+	return strings.ToUpper(state)
+}
+
+// UpdateConnections replaces the connection table. Rows are normalised in
+// place (collectors hand over freshly built per-poll maps), so the snapshot
+// and the connection events emitted afterwards share one state spelling.
 func (n *NetState) UpdateConnections(conns []map[string]any) {
+	for _, conn := range conns {
+		if state, ok := conn["state"].(string); ok {
+			conn["state"] = NormalizeConnState(state)
+		}
+	}
 	n.mu.Lock()
 	n.connections = conns
 	n.updatedAt = Now()

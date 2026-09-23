@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -22,6 +23,13 @@ import (
 func processSysProcAttr() *syscall.SysProcAttr {
 	return &syscall.SysProcAttr{Setpgid: true}
 }
+
+// hideWindow is a Windows-only concern; POSIX has no console-creation flash.
+func hideWindow(_ *exec.Cmd) {}
+
+// showErrorMessage is a Windows-only concern (no console on windowsgui builds);
+// POSIX always has stderr or a terminal to report to.
+func showErrorMessage(_, _ string) {}
 
 // shellCommand mirrors Python _shell_command on POSIX.
 func shellCommand(cmd string) []string {

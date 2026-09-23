@@ -234,14 +234,17 @@
   <div class="summary" id="summary"></div>
   <a id="lan-note" class="lan" style="display:none" target="_blank" rel="noopener"
      title="Open the launcher from any device on this Wi-Fi"></a>
+  <button id="btn-openmode" class="btn-ghost" title="Where apps open when you click Open: a separate window, or a tab in your default browser">🪟 Window</button>
+  <button id="btn-firewall" class="btn-ghost" style="display:none" title="One-time admin prompt that stops the per-app Windows Firewall Allow/Cancel popups">🔓 Wi-Fi permission</button>
   <button id="btn-theme" class="btn-ghost" title="Switch theme">☀️ Light</button>
   <button id="btn-stop-all" class="btn-stop" title="Stop every running app">■ Stop All</button>
   <button id="btn-start-all" class="btn-primary" title="Start every stopped app">▶ Start All</button>
+  <button id="btn-quit" class="btn-stop" title="Stop all apps managed by the launcher and quit the launcher itself">⏻ Quit</button>
 </header>
 
 <div id="groups"></div>
 
-<footer>
+<footer id="foot">
   Launcher itself runs on <code>:9090</code> and is reachable on this Wi-Fi too (link above) —
   start it with <code>Launcher/launcher</code> &nbsp;·&nbsp; edit apps in <code>Launcher/apps.json</code> or add a sibling folder with <code>index.html</code> to discover it automatically
 </footer>
@@ -260,6 +263,14 @@ const POLL_MS = 4000;
 let apps = [];
 let busy = new Set();      // ids with an action in flight
 let logApp = null;         // id whose logs are shown in the modal
+let hostWindow = "browser"; // how this dashboard is hosted: native|app|browser|none
+
+// Where apps open on "Open": a separate window, or a tab in the default
+// browser (from the native launcher window a tab request goes through
+// /api/open, because the WebView2 window itself has no tabs). The button
+// and openApp() are wired further down, after the helpers are defined.
+let openMode = "window";
+try { openMode = localStorage.getItem("launcher.openMode") || "window"; } catch {}
 
 const $ = (s) => document.querySelector(s);
 const groupsEl = $("#groups");
@@ -312,7 +323,7 @@ function cardHtml(a) {
   const lanLink = a.network
     ? (a.lanUrl
         ? `<a class="lan" href="${escapeHtml(a.lanUrl)}" target="_blank" rel="noopener" title="Open from any device on this Wi-Fi">${phoneIcon} ${escapeHtml(a.lanUrl)}</a>`
-        : `<span class="lan" title="Connect this Mac to a Wi-Fi network to get a shareable address"> Wi-Fi IP not detected</span>`)
+        : `<span class="lan" title="Connect this computer to a Wi-Fi network to get a shareable address"> Wi-Fi IP not detected</span>`)
     : "";
   return `
   <div class="card ${a.running ? "running" : ""}" id="card-${a.id}">
@@ -364,7 +375,7 @@ function render() {
              <div class="grid">${wifi.map(cardHtml).join("")}</div>`;
   }
   if (local.length) {
-    html += `<div class="group-label">💻 This Mac only</div>
+    html += `<div class="group-label">💻 This computer only</div>
              <div class="grid">${local.map(cardHtml).join("")}</div>`;
   }
   groupsEl.innerHTML = html;
@@ -375,6 +386,13 @@ async function refresh() {
     apps = await api("/api/apps");
     render();
     const h = await api("/api/health");
+    if (h.window) hostWindow = h.window;
+    $("#btn-firewall").style.display = h.os === "windows" ? "" : "none";
+    if (h.mode === "single-file") {
+      $("#foot").innerHTML =
+        `Single-file build — every app lives inside the launcher executable.<br>` +
+        `Extracted apps, logs &amp; data: <code>${escapeHtml(h.dataDir || "")}</code>`;
+    }
     const note = $("#lan-note");
     if (h.lanUrl) {
       note.href = h.lanUrl;
@@ -384,7 +402,7 @@ async function refresh() {
       note.style.display = "none";
     }
   } catch {
-    $("#summary").textContent = "Launcher offline — is server.py still running?";
+    $("#summary").textContent = "Launcher offline — is it still running?";
   }
 }
 
@@ -400,6 +418,7 @@ async function act(id, action) {
     } else if (action === "start") {
       toast(res.alreadyRunning ? `${id} was already running` : (res.slow ? `${id} starting slowly — check logs` : `${id} started`), res.ok ? "ok" : "err");
     } else {
+      if (res.ok) closeAppWindow(id);
       toast(res.ok ? `${id} stopped` : `${id}: could not fully stop (still up)`, res.ok ? "ok" : "err");
     }
   } catch (e) {
@@ -416,13 +435,60 @@ document.body.addEventListener("click", async (e) => {
   const app = apps.find(a => a.id === id);
   if (!app) return;
   if (action === "open") {
-    window.open(app.url, "_blank");
+    openApp(app);
   } else if (action === "start" || action === "stop") {
     await act(id, action);
   } else if (action === "logs") {
     openLogs(app);
   }
 });
+
+function applyOpenModeBtn() {
+  const btn = $("#btn-openmode");
+  btn.textContent = openMode === "window" ? "🪟 Window" : "🗂 Browser tab";
+  btn.title = "Apps currently open in a separate " + (openMode === "window" ? "window" : "browser tab") +
+    " — click to switch";
+}
+$("#btn-openmode").addEventListener("click", () => {
+  openMode = openMode === "window" ? "tab" : "window";
+  try { localStorage.setItem("launcher.openMode", openMode); } catch {}
+  applyOpenModeBtn();
+  toast(openMode === "window" ? "Apps will open in their own window" : "Apps will open as tabs in your default browser");
+});
+applyOpenModeBtn();
+
+// Windows/tabs this dashboard opened, per app id, so Stop / Stop All can
+// close them along with the app's server. (Tabs the launcher sent to the
+// default browser — tab mode from the native window — live in another
+// browser process and cannot be closed from here.)
+const openWins = {};
+
+function closeAppWindow(id) {
+  const w = openWins[id];
+  if (!w) return;
+  delete openWins[id];
+  try { w.close(); } catch { /* browser refused — leave the tab */ }
+}
+
+function openApp(app) {
+  if (openMode === "tab") {
+    // Only the page inside the launcher's own window (PC loopback) has no
+    // tabs — hand the URL to the default browser instead. Phones/dashboards
+    // opened over Wi-Fi just open a normal tab locally.
+    const onPC = location.hostname === "127.0.0.1" || location.hostname === "[::1]";
+    if (hostWindow === "native" && onPC) {
+      // Default browser: untrackable from here; launcher-hosted apps close
+      // such tabs themselves via the injected watchdog once stopped.
+      api("/api/open", { url: app.url }).catch(() => window.open(app.url, "_blank"));
+      return;
+    }
+    openWins[app.id] = window.open(app.url, "_blank");
+    return;
+  }
+  // No "noopener" on purpose: keeping the opener reference is what lets
+  // Stop/Stop All close this window later.
+  openWins[app.id] = window.open(app.url, "_blank", "width=1280,height=880");
+}
 
 $("#btn-start-all").addEventListener("click", async () => {
   toast("Starting all stopped apps…");
@@ -434,7 +500,40 @@ $("#btn-stop-all").addEventListener("click", async () => {
   toast("Stopping all running apps…");
   await api("/api/all/stop", {});
   await refresh();
+  // Close the windows/tabs of everything that is no longer running.
+  apps.forEach(a => { if (!a.running) closeAppWindow(a.id); });
   toast("Stop All done", "ok");
+});
+
+// Quit: stops the apps the launcher started, then the launcher exits. The
+// launcher window closes with it in window mode.
+$("#btn-quit").addEventListener("click", async () => {
+  if (!confirm("Quit the launcher?\n\nApps it started will be stopped.")) return;
+  // Best effort: close the app windows this page opened before quitting.
+  Object.keys(openWins).forEach(closeAppWindow);
+  try { await api("/api/shutdown", {}); } catch { /* already gone */ }
+  toast("Launcher stopping…", "ok");
+  setTimeout(() => window.close(), 600);
+});
+
+// One-time firewall fix: adds allow-rules for the launcher + every network
+// app through a single Windows admin prompt, so individual apps stop asking.
+$("#btn-firewall").addEventListener("click", async () => {
+  toast("Approve the admin prompt to whitelist every app at once…");
+  try {
+    const res = await api("/api/firewall", {});
+    if (res.ok) toast(res.note || "Done — apps will stop asking for network permission", "ok");
+    else toast(res.error || "Could not start the firewall fix", "err");
+  } catch (e) {
+    toast(`Launcher unreachable: ${e}`, "err");
+  }
+});
+
+// Window-mode keepalive: an open dashboard holds the launcher alive; closing
+// the last one (pagehide) fires a bye beacon so the launcher shuts down.
+setInterval(() => { fetch("/api/heartbeat", { method: "POST" }).catch(() => {}); }, 4000);
+addEventListener("pagehide", () => {
+  navigator.sendBeacon?.("/api/heartbeat?bye=1");
 });
 
 function openLogs(app) {

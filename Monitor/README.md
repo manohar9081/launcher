@@ -2,8 +2,9 @@
 
 A faithful Go port of the Python `monitor` package (`python -m monitor`): a
 cross-platform privacy (camera/mic/file) & network activity monitor with a
-local web dashboard. The Go module is standalone (`module monitor`) and has a
-single third-party dependency: `modernc.org/sqlite` (pure Go SQLite — no cgo).
+local web dashboard. The Go module is standalone (`module monitor`) and has
+two direct dependencies: `modernc.org/sqlite` (pure Go SQLite — no cgo) and
+`golang.org/x/sys` (NetBSD statvfs; indirect everywhere else).
 
 ## Build & run
 
@@ -40,8 +41,41 @@ GOOS=linux  go build ./...
 GOOS=darwin go build ./...
 ```
 
+Or build every supported target at once into `dist/` (binary + `web/`
+assets + checksums per folder):
+
+```sh
+./build.sh
+```
+
 Requirements: Go 1.27+, network access to proxy.golang.org on first build
 (to fetch modernc.org/sqlite). No gcc needed anywhere.
+
+## Platform support
+
+Verified build targets (all pure-Go cross-compiles, no cgo):
+
+| OS                     | amd64 | arm64 | 386 | arm (v7) |
+|------------------------|:-----:|:-----:|:---:|:--------:|
+| Windows (primary)      | ✔    | ✔    | ✔  | –       |
+| Linux (Debian/Kali…)   | ✔    | ✔    | ✔  | ✔       |
+| macOS                  | ✔    | ✔    | –  | –       |
+| FreeBSD / OpenBSD / NetBSD | ✔ | –   | –  | –       |
+
+- The three platform collectors (**privacy / files / network**) have native
+  implementations for Windows, macOS and Linux only. On the BSDs they
+  register as `unavailable` (visible reason in the status table); all
+  portable collectors still run there: vitals (CPU/RAM/disks/battery),
+  devices, logins, appfocus (xdotool/X11), android, events, dashboard,
+  store, and block-rule queueing.
+- Blocking: Windows uses netsh when elevated, Linux iptables when root (or
+  via the sudo helper), macOS pf via the helper script. On the BSDs there
+  is no enforcer path — rules are queued and applied if the store is later
+  moved to a supported platform.
+- 32-bit ARM Linux (`GOARCH=arm`) must be built with `GOARM=7` — the
+  pure-Go libc backing SQLite requires ARMv7.
+- Solaris/illumos, Plan 9, js/wasm: not supported (modernc.org/sqlite has
+  no port for them).
 
 ## Layout / Python → Go mapping
 
@@ -134,13 +168,23 @@ same dashboard files without duplication.
     file events, the FSW helper printing a `Test-Path` warning when no dirs
     are configured, first-poll emitting `device_connect` for already-present
     devices, `str(None)` → `"None"` inside f-string addresses, etc.
+11. **Connection-state names normalised** (bug fix): the dashboard's
+    live-connections filter matches Windows spellings only (`ESTABLISHED`,
+    `SYN_SENT`, …), so on Linux — where `ss` reports `ESTAB`, `SYN-SENT`,
+    `FIN-WAIT-1`, … — every row was filtered out and the panel stayed
+    empty. `NetState.UpdateConnections` now canonicalises states from all
+    three collectors (`ss`, PowerShell, lsof) to the netstat long form in
+    one place, covering both the snapshot and connection events.
 
 ## Verification
 
 ```sh
-gofmt -l .                      # clean
-go vet ./...                    # clean
-go build ./...                  # windows/amd64
+gofmt -l .                      # clean (on an LF checkout)
+go vet ./...
+go test ./...
+go build ./...                  # host platform
 GOOS=linux  go build ./...      # linux/amd64
 GOOS=darwin go build ./...      # darwin/amd64
+GOOS=freebsd go build ./...     # bsd fallback collectors compile
+./build.sh                      # full matrix into dist/
 ```
